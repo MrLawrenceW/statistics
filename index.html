@@ -1,0 +1,2645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HKDSE Statistics Revision Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+            svg: { fontCache: 'global', linebreaks: { inline: true } }
+        };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        #question-display, .qtext { font-family: 'Times New Roman', Times, serif; }
+        .mathvar { font-style: italic; }
+        #question-display .stem-table, #l3-blocks .stem-table, .qtext .stem-table {
+            border-collapse: collapse;
+            font-family: 'Times New Roman', Times, serif;
+        }
+        #question-display .stem-table td, #l3-blocks .stem-table td, .qtext .stem-table td {
+            border: 1px solid rgba(148, 163, 184, 0.45);
+            padding: 4px 12px;
+            text-align: center;
+            font-size: 1em;
+            color: #ffffff;
+            font-weight: normal;
+        }
+        #question-display .stem-table th, #l3-blocks .stem-table th, .qtext .stem-table th {
+            border: 1px solid rgba(148, 163, 184, 0.45);
+            padding: 4px 12px;
+            text-align: center;
+            font-weight: normal;
+            font-size: 1em;
+            color: #ffffff;
+        }
+        #question-display .stem-table .lbl, #l3-blocks .stem-table .lbl, .qtext .stem-table .lbl {
+            text-align: left;
+            font-weight: normal;
+            color: #ffffff;
+            white-space: nowrap;
+        }
+        /* stem-and-leaf: textbook style — no outer grid, one thin vertical divider,
+           underlined headings, right-aligned stems, generously spaced leaves */
+        #question-display .stem-table.stemleaf, #l3-blocks .stem-table.stemleaf, .qtext .stem-table.stemleaf {
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 12px auto;
+        }
+        #question-display .stemleaf td, #l3-blocks .stemleaf td, .qtext .stemleaf td,
+        #question-display .stemleaf th, #l3-blocks .stemleaf th, .qtext .stemleaf th {
+            border: none;
+            font-weight: normal;
+            color: #ffffff;
+        }
+        #question-display .stemleaf td, #l3-blocks .stemleaf td, .qtext .stemleaf td {
+            font-size: 1em;
+            line-height: 1.6;
+            padding: 5px 0;
+        }
+        #question-display .stemleaf tr:last-child td, #l3-blocks .stemleaf tr:last-child td, .qtext .stemleaf tr:last-child td {
+            padding-bottom: 9px;
+        }
+        #question-display .stemleaf th, #l3-blocks .stemleaf th, .qtext .stemleaf th {
+            font-size: 1em;
+            font-weight: normal;
+            color: #ffffff;
+            text-decoration: underline;
+            padding: 7px 0 6px;
+        }
+        #question-display .stemleaf td:first-child, #l3-blocks .stemleaf td:first-child, .qtext .stemleaf td:first-child,
+        #question-display .stemleaf th:first-child, #l3-blocks .stemleaf th:first-child, .qtext .stemleaf th:first-child {
+            text-align: right;
+            padding-right: 16px;
+        }
+        #question-display .stemleaf td:last-child, #l3-blocks .stemleaf td:last-child, .qtext .stemleaf td:last-child {
+            text-align: left;
+            padding-left: 16px;
+            letter-spacing: 0.3em;
+            border-left: 1px solid rgba(203, 213, 225, 0.55);
+        }
+        #question-display .stemleaf th:last-child, #l3-blocks .stemleaf th:last-child, .qtext .stemleaf th:last-child {
+            text-align: left;
+            padding-left: 16px;
+            border-left: 1px solid rgba(203, 213, 225, 0.55);
+        }
+        #question-display .boxplot, #l3-blocks .boxplot, .qtext .boxplot {
+            margin: 8px auto;
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+        #question-display .boxplot text, #l3-blocks .boxplot text, .qtext .boxplot text {
+            fill: #000000;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        /* Root cause fix: Tailwind preflight sets svg { display: block }, which breaks
+           inline MathJax baseline. Keep MathJax SVG inline (its own vertical-align then
+           wins). Never set vertical-align: middle !important on mjx-container or its svg. */
+        #question-display mjx-container,
+        #l3-area mjx-container,
+        #l3-blocks mjx-container { margin: 0 0.25em !important; font-size: 1em !important; }
+        #question-display mjx-container svg,
+        #l3-area mjx-container svg,
+        #l3-blocks mjx-container svg { display: inline-block !important; }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .heart-bounce { animation: bounce 1s infinite; }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-20%) scale(1.1); }
+        }
+        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
+        }
+        .toast {
+            min-width: 250px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            animation: slideIn 0.3s ease-out forwards;
+            opacity: 0;
+            transform: translateX(100%);
+        }
+        .toast.success { background-color: #10b981; }
+        .toast.error { background-color: #ef4444; }
+        .toast.info { background-color: #3b82f6; }
+        .toast.fade-out { animation: fadeOut 0.5s ease-in forwards; }
+        
+        @keyframes slideIn {
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fadeOut {
+            to { opacity: 0; transform: translateX(100%); }
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px;}
+        ::-webkit-scrollbar-track { background: rgba(30, 41, 59, 0.5); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+
+        .format-btn.active {
+            border-color: #f59e0b !important;
+            background-color: rgba(245, 158, 11, 0.2) !important;
+            color: #fde68a !important;
+        }
+
+        /* ==== COLORFUL THEME + ANSWER ANIMATIONS ==== */
+        body {
+            background-image:
+                radial-gradient(ellipse 80% 50% at 15% -10%, rgba(99, 102, 241, 0.30), transparent 60%),
+                radial-gradient(ellipse 60% 45% at 85% -5%, rgba(217, 70, 239, 0.22), transparent 60%),
+                radial-gradient(ellipse 75% 50% at 50% 110%, rgba(34, 211, 238, 0.20), transparent 60%);
+            background-attachment: fixed;
+        }
+        #login-screen h1 {
+            background: linear-gradient(90deg, #fbbf24, #f472b6, #818cf8, #34d399);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+        }
+        #dashboard-screen .glass-panel:hover { box-shadow: 0 0 26px rgba(139, 92, 246, 0.25); }
+        @keyframes flashGreen {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+            50% { box-shadow: 0 0 42px 10px rgba(34, 197, 94, 0.55); }
+        }
+        @keyframes flashRed {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+            30%, 60% { box-shadow: 0 0 48px 12px rgba(239, 68, 68, 0.6); }
+        }
+        .correct-flash { animation: flashGreen 0.7s ease-in-out; }
+        .wrong-flash { animation: flashRed 0.6s ease-in-out; }
+        @keyframes scoreBounce {
+            0% { transform: scale(1); }
+            40% { transform: scale(1.45); }
+            100% { transform: scale(1); }
+        }
+        .score-bounce { animation: scoreBounce 0.5s ease; }
+        @keyframes heartBreakAnim {
+            0% { transform: scale(1); opacity: 1; }
+            40% { transform: scale(1.6); }
+            100% { transform: scale(0.4); opacity: 0.35; }
+        }
+        .heart-broken { display: inline-block; animation: heartBreakAnim 0.55s ease forwards; }
+        @keyframes badgeBounce {
+            0% { transform: scale(0.7); }
+            55% { transform: scale(1.12); }
+            100% { transform: scale(1); }
+        }
+        .badge-bounce { animation: badgeBounce 0.6s ease; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center p-4 selection:bg-amber-500 selection:text-white">
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <div id="login-screen" class="w-full max-w-md glass-panel rounded-3xl p-8 shadow-2xl transition-all duration-500">
+        <div class="text-center mb-8">
+            <div class="text-5xl mb-4">🚀</div>
+            <h1 class="text-2xl font-bold text-white mb-2">HKDSE Mathematics</h1>
+            <h2 class="text-amber-400 font-semibold tracking-wide uppercase text-sm">Statistics Revision</h2>
+        </div>
+
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-slate-400 mb-1">Class (e.g., 4A)</label>
+                <input type="text" id="student-class" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 uppercase" placeholder="4A">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-400 mb-1">Class Number</label>
+                <input type="number" id="student-no" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500" placeholder="12">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-400 mb-1">Name</label>
+                <input type="text" id="student-name" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500" placeholder="Chan Tai Man">
+            </div>
+            <button onclick="login()" class="w-full mt-6 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-3 px-4 rounded-lg transition shadow-lg shadow-amber-500/20 active:scale-95">
+                Start Mission
+            </button>
+        </div>
+    </div>
+
+    <div id="dashboard-screen" class="hidden w-full max-w-4xl flex flex-col gap-6 transition-all duration-500">
+        
+        <!-- Header -->
+        <div class="glass-panel rounded-2xl p-6 flex justify-between items-center shadow-xl">
+            <div>
+                <h2 class="text-2xl font-bold text-white" id="display-name">Welcome, Student</h2>
+                <p class="text-slate-400 text-sm">Class: <span id="display-class" class="text-amber-400 font-semibold"></span> | No: <span id="display-no" class="text-amber-400 font-semibold"></span></p>
+            </div>
+            <button onclick="logout()" class="text-slate-400 hover:text-white transition text-sm">
+                Switch User 🚪
+            </button>
+        </div>
+
+        <!-- Completion Passport -->
+        <div class="glass-panel rounded-2xl p-6 shadow-xl border border-amber-500/30 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10 pointer-events-none text-8xl">🎓</div>
+            
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 border-b border-slate-700/60 pb-4">
+                <h3 class="text-lg font-bold text-amber-400 flex items-center gap-2">
+                    🎓 Completion Passport (學習記錄卡)
+                </h3>
+                <div class="flex flex-wrap gap-2 z-10 justify-end">
+                    <button id="btn-submit-teacher" onclick="submitToTeacher()" class="bg-blue-600 hover:bg-blue-500 border border-blue-400 text-white px-3 py-2 rounded-lg font-semibold transition shadow-lg shadow-blue-500/20 text-sm flex items-center gap-2 active:scale-95">
+                        <span>Submit to Teacher</span> 📧
+                    </button>
+                    <button onclick="resetBadges()" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 text-slate-200 px-3 py-2 rounded-lg transition text-sm active:scale-95">
+                        Reset 🔄
+                    </button>
+                </div>
+            </div>
+
+            <!-- Score Board -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 relative z-10">
+                <div class="bg-slate-800/80 rounded-xl p-4 text-center border border-slate-700 transition duration-300" id="badge-card-0">
+                    <div class="text-3xl mb-2" id="badge-icon-0">🔒</div>
+                    <div class="font-bold text-slate-200">Level 0</div>
+                    <div class="text-xs text-slate-400 mb-2">Paper 2 MCQs</div>
+                    <div id="badge-status-0" class="text-sm font-semibold text-slate-500">Not Attempted</div>
+                    <div class="mt-2 inline-flex items-center gap-1 bg-slate-900/80 border border-amber-500/30 rounded-full px-3 py-1">
+                        <span class="text-xs text-amber-300 font-bold">⭐ <span id="score-0">0</span> marks</span>
+                    </div>
+                </div>
+                <div class="bg-slate-800/80 rounded-xl p-4 text-center border border-slate-700 transition duration-300" id="badge-card-1">
+                    <div class="text-3xl mb-2" id="badge-icon-1">🔒</div>
+                    <div class="font-bold text-slate-200">Level 1</div>
+                    <div class="text-xs text-slate-400 mb-2">S3 Basics (mean · median · mode)</div>
+                    <div id="badge-status-1" class="text-sm font-semibold text-slate-500">Not Attempted</div>
+                    <div class="mt-2 inline-flex items-center gap-1 bg-slate-900/80 border border-amber-500/30 rounded-full px-3 py-1">
+                        <span class="text-xs text-amber-300 font-bold">⭐ <span id="score-1">0</span> marks</span>
+                    </div>
+                </div>
+                <div class="bg-slate-800/80 rounded-xl p-4 text-center border border-slate-700 transition duration-300" id="badge-card-2">
+                    <div class="text-3xl mb-2" id="badge-icon-2">🔒</div>
+                    <div class="font-bold text-slate-200">Level 2</div>
+                    <div class="text-xs text-slate-400 mb-2">Measures of Dispersion</div>
+                    <div id="badge-status-2" class="text-sm font-semibold text-slate-500">Not Attempted</div>
+                    <div class="mt-2 inline-flex items-center gap-1 bg-slate-900/80 border border-amber-500/30 rounded-full px-3 py-1">
+                        <span class="text-xs text-amber-300 font-bold">⭐ <span id="score-2">0</span> marks</span>
+                    </div>
+                </div>
+                <div class="bg-slate-800/80 rounded-xl p-4 text-center border border-slate-700 transition duration-300" id="badge-card-3">
+                    <div class="text-3xl mb-2" id="badge-icon-3">🔒</div>
+                    <div class="font-bold text-slate-200">Level 3</div>
+                    <div class="text-xs text-slate-400 mb-2">Standard Score · Data Change</div>
+                    <div id="badge-status-3" class="text-sm font-semibold text-slate-500">Not Attempted</div>
+                    <div class="mt-2 inline-flex items-center gap-1 bg-slate-900/80 border border-amber-500/30 rounded-full px-3 py-1">
+                        <span class="text-xs text-amber-300 font-bold">⭐ <span id="score-3">0</span> marks</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 relative z-10 flex justify-center">
+                <div class="bg-gradient-to-r from-amber-500/20 via-yellow-500/20 to-amber-500/20 border border-amber-500/40 rounded-full px-6 py-2 flex items-center gap-3">
+                    <span class="text-lg">🏆</span>
+                    <span class="text-sm font-bold text-amber-300">Total Marks: <span id="total-marks" class="text-xl font-extrabold text-yellow-300">0</span></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <button onclick="startGame(0)" class="glass-panel rounded-2xl p-6 text-left hover:-translate-y-1 transition duration-300 border-t-4 border-green-500 group relative overflow-hidden">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-bold text-xl text-white group-hover:text-green-400 transition">Level 0</h3>
+                    <span class="text-2xl group-hover:scale-110 transition">🟢</span>
+                </div>
+                <p class="text-slate-400 text-sm relative z-10">Paper 2 multiple choice: dispersion, data change & standard scores. (DSE P2 style)</p>
+            </button>
+
+            <button onclick="startGame(1)" class="glass-panel rounded-2xl p-6 text-left hover:-translate-y-1 transition duration-300 border-t-4 border-teal-500 group relative overflow-hidden">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-bold text-xl text-white group-hover:text-teal-400 transition">Level 1</h3>
+                    <span class="text-2xl group-hover:scale-110 transition">🟦</span>
+                </div>
+                <p class="text-slate-400 text-sm relative z-10">S3 statistics basics: mean · median · mode, stem-and-leaf diagrams and frequency tables. (Paper 1)</p>
+            </button>
+
+            <button onclick="startGame(2)" class="glass-panel rounded-2xl p-6 text-left hover:-translate-y-1 transition duration-300 border-t-4 border-amber-500 group relative overflow-hidden">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-bold text-xl text-white group-hover:text-amber-400 transition">Level 2</h3>
+                    <span class="text-2xl group-hover:scale-110 transition">🟡</span>
+                </div>
+                <p class="text-slate-400 text-sm relative z-10">Measures of dispersion: range · IQR · standard deviation, box plots, stem-and-leaf. (Paper 1)</p>
+            </button>
+
+            <button onclick="startGame(3)" class="glass-panel rounded-2xl p-6 text-left hover:-translate-y-1 transition duration-300 border-t-4 border-red-500 group relative overflow-hidden">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-bold text-xl text-white group-hover:text-red-400 transition">Level 3</h3>
+                    <span class="text-2xl group-hover:scale-110 transition">🔴</span>
+                </div>
+                <p class="text-slate-400 text-sm relative z-10">Multi-part (a)(b)(c): standard score & change of data, Paper 1 Section B style.</p>
+            </button>
+        </div>
+    </div>
+
+    <div id="game-screen" class="hidden w-full max-w-3xl flex flex-col gap-4">
+        
+        <div class="flex justify-between items-center bg-slate-800 rounded-full px-6 py-3 shadow-lg border border-slate-700">
+            <div class="font-bold text-amber-400" id="level-indicator">Level 1</div>
+            <div class="flex gap-1 text-xl" id="lives-container">
+                <!-- Hearts injected here -->
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="text-slate-300 font-mono bg-slate-900 px-3 py-1 rounded-full text-sm font-semibold">
+                    Q: <span id="q-counter">1/10</span>
+                </div>
+                <div class="text-amber-300 font-mono bg-slate-900 border border-amber-500/30 px-3 py-1 rounded-full text-sm font-semibold">
+                    ⭐ <span id="live-score">0</span>
+                </div>
+            </div>
+            <button onclick="quitGame()" class="text-slate-500 hover:text-red-400 transition text-xs font-bold uppercase tracking-wider">
+                Abort
+            </button>
+        </div>
+
+        <div class="glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl text-center min-h-[350px] flex flex-col relative w-full" id="main-game-area">
+            
+            <div class="text-[11px] text-slate-400 text-left leading-tight mb-3">
+                Unless otherwise specified, numerical answers should be either exact or correct to 3 significant figures.
+            </div>
+
+            <div class="w-full flex justify-between items-center mb-2 border-b border-slate-700/50 pb-3">
+                <div class="flex flex-col text-left">
+                    <h3 class="text-slate-300 text-sm font-semibold" id="question-instruction">Simplify the expression:</h3>
+                    <div class="flex gap-3 flex-wrap">
+                        <span class="text-xs text-amber-400 font-semibold" id="format-hint"></span>
+                        <span class="text-xs text-sky-400 font-semibold" id="paper-hint"></span>
+                        <span class="text-xs text-violet-400 font-semibold" id="source-hint"></span>
+                        <span class="text-xs text-emerald-400 font-semibold" id="part-label"></span>
+                    </div>
+                </div>
+                <div class="flex gap-2 shrink-0">
+                    <button onclick="askAITutor()" class="text-[10px] sm:text-xs bg-purple-600/20 text-purple-300 border border-purple-500/30 px-3 py-1.5 rounded-full hover:bg-purple-600/40 transition font-bold active:scale-95 flex items-center gap-1">
+                        Ask AI ✨
+                    </button>
+                    <button onclick="toggleCheatSheet()" class="text-[10px] sm:text-xs bg-blue-600/20 text-blue-400 border border-blue-500/30 px-3 py-1.5 rounded-full hover:bg-blue-600/40 transition active:scale-95 flex items-center gap-1">
+                        Formulas 💡
+                    </button>
+                </div>
+            </div>
+
+            <div id="question-display" class="text-lg sm:text-xl text-white mb-6 overflow-x-auto py-6 px-4 text-left leading-relaxed min-h-[120px] max-w-2xl mx-auto">
+                <!-- MathJax renders here -->
+            </div>
+            
+            <div id="mc-options" class="grid grid-cols-1 sm:grid-cols-2 gap-4 hidden w-full mt-auto">
+                <button onclick="submitMCAnswer(0)" class="option-btn bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl p-4 text-xl transition-all shadow-md active:scale-95 min-h-[64px] flex items-center justify-center"></button>
+                <button onclick="submitMCAnswer(1)" class="option-btn bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl p-4 text-xl transition-all shadow-md active:scale-95 min-h-[64px] flex items-center justify-center"></button>
+                <button onclick="submitMCAnswer(2)" class="option-btn bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl p-4 text-xl transition-all shadow-md active:scale-95 min-h-[64px] flex items-center justify-center"></button>
+                <button onclick="submitMCAnswer(3)" class="option-btn bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl p-4 text-xl transition-all shadow-md active:scale-95 min-h-[64px] flex items-center justify-center"></button>
+            </div>
+
+            <div id="conventional-area" class="hidden flex flex-col items-center gap-4 w-full max-w-md mx-auto mt-auto">
+                <p class="text-[11px] text-slate-400 text-center leading-tight">
+                    Type the number only, e.g. <span class='font-mono text-emerald-400'>5.4</span>, <span class='font-mono text-emerald-400'>2/5</span>, <span class='font-mono text-emerald-400'>-1.6</span>, <span class='font-mono text-emerald-400'>yes</span> or <span class='font-mono text-emerald-400'>no</span>.
+                </p>
+
+                <div class="flex gap-2 w-full">
+                    <input type="text" id="conventional-input" placeholder="e.g. 5.4 or 2/5" class="flex-1 bg-slate-800 border border-slate-600 rounded-lg px-4 py-3 text-lg font-mono text-white outline-none focus:border-amber-500 transition shadow-inner" oninput="updateLivePreview()" onkeypress="handleEnter(event)">
+                    <button onclick="submitFillAnswer()" class="bg-amber-600 hover:bg-amber-500 text-white font-bold px-6 rounded-lg text-base transition shadow-md active:scale-95">
+                        Submit
+                    </button>
+                </div>
+
+                <div id="helper-buttons" class="flex flex-wrap gap-2 justify-center w-full mt-1">
+                    <!-- dynamically injected helper buttons -->
+                </div>
+
+                <div class="w-full p-4 bg-slate-900/60 border border-slate-700 rounded-lg text-center min-h-[80px] flex flex-col justify-center items-center mt-2">
+                    <span class="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Live Math Preview</span>
+                    <div id="math-preview" class="text-xl text-slate-300 min-h-[30px] flex items-center justify-center">\( \text{Empty} \)</div>
+                </div>
+            </div>
+
+            <!-- Level 3: multi-part (a)(b)(c) blocks, each with its own question + answer area -->
+            <div id="l3-area" class="hidden w-full mt-auto">
+                <div id="l3-blocks" class="flex flex-col gap-4"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- CHEAT SHEET MODAL -->
+    <div id="cheat-modal" class="fixed inset-0 bg-black/80 hidden flex items-center justify-center z-50 p-4 backdrop-blur-sm transition-opacity" onclick="if(event.target===this) toggleCheatSheet()">
+        <div class="glass-panel p-6 rounded-2xl border border-slate-600 max-w-sm w-full shadow-2xl">
+            <h3 class="text-2xl font-bold text-amber-400 mb-4 border-b border-slate-700 pb-2">Statistics</h3>
+            <ul class="space-y-4 text-lg font-serif">
+                <li class="flex justify-between items-center"><span class="text-slate-300 text-sm font-sans">Mean:</span> <span class="bg-slate-900/80 px-2 py-1 rounded text-white border border-slate-700">\(\bar{x} = \frac{\sum x}{n}\)</span></li>
+                <li class="flex justify-between items-center"><span class="text-slate-300 text-sm font-sans">Median:</span> <span class="bg-slate-900/80 px-2 py-1 rounded text-white border border-slate-700">middle value(s) of the ordered data</span></li>
+                <li class="flex justify-between items-center"><span class="text-slate-300 text-sm font-sans">Mode:</span> <span class="bg-slate-900/80 px-2 py-1 rounded text-white border border-slate-700">most frequent value(s)</span></li>
+                <li class="flex justify-between items-center"><span class="text-slate-300 text-sm font-sans">Range:</span> <span class="bg-slate-900/80 px-2 py-1 rounded text-white border border-slate-700">maximum − minimum</span></li>
+                <li class="flex justify-between items-center"><span class="text-slate-300 text-sm font-sans">IQR:</span> <span class="bg-slate-900/80 px-2 py-1 rounded text-white border border-slate-700">\(Q_3 - Q_1\)</span></li>
+                <li class="flex justify-between items-center"><span class="text-slate-300 text-sm font-sans">Variance:</span> <span class="bg-slate-900/80 px-2 py-1 rounded text-white border border-slate-700">\(\frac{\sum (x - \bar{x})^2}{n}\)</span></li>
+                <li class="flex justify-between items-center"><span class="text-slate-300 text-sm font-sans">Std. deviation:</span> <span class="bg-slate-900/80 px-2 py-1 rounded text-white border border-slate-700">\(\sigma = \sqrt{\text{variance}}\)</span></li>
+                <li class="flex justify-between items-center"><span class="text-slate-300 text-sm font-sans">Standard score:</span> <span class="bg-slate-900/80 px-2 py-1 rounded text-white border border-slate-700">\(z = \frac{x - \mu}{\sigma}\)</span></li>
+                <li class="flex justify-between items-center"><span class="text-slate-300 text-sm font-sans">Change of data:</span> <span class="bg-slate-900/80 px-2 py-1 rounded text-white border border-slate-700">×k then +c: mean ×k +c · range/IQR ×k · SD ×k · variance ×k² · z unchanged</span></li>
+            </ul>
+            <button onclick="toggleCheatSheet()" class="mt-8 w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-lg active:scale-95 transition">Close</button>
+        </div>
+    </div>
+
+    <!-- AI TUTOR MODAL -->
+    <div id="ai-tutor-modal" class="fixed inset-0 bg-black/80 hidden flex items-center justify-center z-50 p-4 backdrop-blur-sm transition-opacity" onclick="if(event.target===this) closeAITutor()">
+        <div class="glass-panel border border-purple-500/50 max-w-lg w-full rounded-2xl shadow-2xl p-6 flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center border-b border-slate-700 pb-3 mb-4">
+                <h3 class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-300 flex items-center gap-2">
+                    <span>✨ AI Tutor (HKDSE 導師)</span>
+                </h3>
+                <button onclick="closeAITutor()" class="text-slate-400 hover:text-white text-2xl font-bold">&times;</button>
+            </div>
+            
+            <div id="ai-content-area" class="flex-1 overflow-y-auto pr-2 space-y-4 text-slate-200 text-sm sm:text-base leading-relaxed">
+                <!-- AI tutor contents rendered here -->
+            </div>
+            
+            <button onclick="closeAITutor()" class="mt-6 w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded-xl transition active:scale-95">
+                Got it, thanks!
+            </button>
+        </div>
+    </div>
+
+    <!-- WRONG ANSWER TECHNIQUE REFLECTION MODAL -->
+    <div id="wrong-reflection-modal" class="fixed inset-0 bg-black/90 hidden flex items-center justify-center z-[60] p-4 backdrop-blur-md transition-opacity">
+        <div class="glass-panel border-2 border-red-500/40 max-w-md w-full rounded-2xl shadow-2xl p-6 flex flex-col">
+            <div class="flex items-center gap-3 mb-4 border-b border-slate-700 pb-3">
+                <span class="text-3xl">🛑</span>
+                <h3 class="text-xl font-bold text-red-400">Wait! Let's Reflect</h3>
+            </div>
+            <p class="text-slate-300 mb-6 text-sm">You got that one wrong. Before moving on, which <strong>technique</strong> was primarily needed to solve that question?</p>
+
+            <div class="space-y-3">
+                <button onclick="submitWrongReflection('mean_median_mode')" class="w-full text-left px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl transition active:scale-95 flex items-center justify-between group">
+                    <span class="text-sm font-semibold text-slate-200 group-hover:text-white">Mean · Median · Mode</span>
+                    <span class="font-serif bg-slate-900 px-2 py-1 rounded text-xs text-amber-300">\(\bar{x} = \frac{\sum x}{n}\)</span>
+                </button>
+                <button onclick="submitWrongReflection('five_number_summary')" class="w-full text-left px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl transition active:scale-95 flex items-center justify-between group">
+                    <span class="text-sm font-semibold text-slate-200 group-hover:text-white">Box Plot · Range · IQR</span>
+                    <span class="font-serif bg-slate-900 px-2 py-1 rounded text-xs text-amber-300">\(Q_3 - Q_1\)</span>
+                </button>
+                <button onclick="submitWrongReflection('stem_leaf')" class="w-full text-left px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl transition active:scale-95 flex items-center justify-between group">
+                    <span class="text-sm font-semibold text-slate-200 group-hover:text-white">Stem-and-leaf Diagram</span>
+                    <span class="font-serif bg-slate-900 px-2 py-1 rounded text-xs text-amber-300">stem 2 leaf 5 → 25</span>
+                </button>
+                <button onclick="submitWrongReflection('freq_table')" class="w-full text-left px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl transition active:scale-95 flex items-center justify-between group">
+                    <span class="text-sm font-semibold text-slate-200 group-hover:text-white">Frequency Table</span>
+                    <span class="font-serif bg-slate-900 px-2 py-1 rounded text-xs text-amber-300">value ↔ frequency</span>
+                </button>
+                <button onclick="submitWrongReflection('std_dev')" class="w-full text-left px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl transition active:scale-95 flex items-center justify-between group">
+                    <span class="text-sm font-semibold text-slate-200 group-hover:text-white">Standard Deviation · Variance</span>
+                    <span class="font-serif bg-slate-900 px-2 py-1 rounded text-xs text-amber-300">\(\sigma = \sqrt{\frac{\sum (x-\bar{x})^2}{n}}\)</span>
+                </button>
+                <button onclick="submitWrongReflection('data_change')" class="w-full text-left px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl transition active:scale-95 flex items-center justify-between group">
+                    <span class="text-sm font-semibold text-slate-200 group-hover:text-white">Change of Data</span>
+                    <span class="font-serif bg-slate-900 px-2 py-1 rounded text-xs text-amber-300">×k then +c</span>
+                </button>
+                <button onclick="submitWrongReflection('std_score')" class="w-full text-left px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl transition active:scale-95 flex items-center justify-between group">
+                    <span class="text-sm font-semibold text-slate-200 group-hover:text-white">Standard Score</span>
+                    <span class="font-serif bg-slate-900 px-2 py-1 rounded text-xs text-amber-300">\(z = \frac{x - \mu}{\sigma}\)</span>
+                </button>
+                <button onclick="submitWrongReflection('use_a')" class="w-full text-left px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl transition active:scale-95 flex items-center justify-between group">
+                    <span class="text-sm font-semibold text-slate-200 group-hover:text-white">Use the Result of Part (a)</span>
+                    <span class="font-serif bg-slate-900 px-2 py-1 rounded text-xs text-amber-300">reuse the earlier answer</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- WRONG ANSWER FEEDBACK MODAL -->
+    <div id="feedback-toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-red-950/90 backdrop-blur-md border-2 border-red-500 text-red-100 px-6 py-4 rounded-xl shadow-2xl hidden z-50 text-center max-w-sm w-full transition-all">
+        <div class="flex items-center justify-center gap-2 mb-1">
+            <span class="text-2xl">❌</span>
+            <p class="font-bold text-lg">Incorrect Answer!</p>
+        </div>
+        <p class="text-sm text-red-300 mt-1">Check the formulas — mean, median, IQR, standard deviation or standard score?</p>
+    </div>
+
+    <script>
+        // Deployed Google Apps Script Web App URL
+        const GOOGLE_SCRIPT_URL =
+            'PASTE_DEPLOYED_WEB_APP_URL_HERE';
+
+        const APP_VERSION = '6';
+        (function watchAppVersion() {
+            // GitHub Pages serves this site as .../<repo>/ (index.html). Tolerate
+            // every URL shape: no trailing slash, query strings, direct index.html link.
+            let file = location.pathname.replace(/\/+$/, '').split('/').pop() || 'index.html';
+            if (file.indexOf('.') === -1) file = 'index.html';
+            const check = () => {
+                fetch('version.json?t=' + Date.now(), { cache: 'no-store' })
+                    .then(r => r.json())
+                    .then(data => {
+                        const newest = data && (data[file] || data['index.html']);
+                        if (newest && newest !== APP_VERSION) {
+                            // cache-busted reload (GitHub Pages serves HTML with max-age=600,
+                            // so a plain reload() can bounce back the stale page)
+                            const base = location.href.split('#')[0].replace(/[?&]v=[^&]*/g, '');
+                            location.href = base + (base.indexOf('?') === -1 ? '?' : '&') + 'v=' + encodeURIComponent(newest);
+                        }
+                    })
+                    .catch(() => {});
+            };
+            setInterval(check, 60000);
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') check();
+            });
+        })();
+
+        let studentProfile = null;
+        let badgeRecords = { level0: false, level1: false, level2: false, level3: false };
+        let currentLevel = 1;
+        let currentQuestionIndex = 0;
+        let lives = 5;
+        let currentQuestions = [];
+        let selectedFormat = 'all'; // 'all', 'mc', 'fill'
+        let currentQuestionMode = 'mc'; // state for current specific question
+        let currentSets = [];    // Level 3: array of question sets (each set = array of parts)
+        let currentSetIndex = 0;
+        let activePart = null;   // the part currently being answered (for reflection / AI tutor)
+        
+        // --- SCORE BOARD ---
+        // Full marks per level, marks deducted per heart lost. Marks accumulate across replays.
+        const NUM_QUESTIONS = 5;
+        const LEVEL3_SETS = 5;
+        const LEVEL_LIVES = { 0: 5, 1: 5, 2: 5, 3: 5 };
+        const MARKS = {
+            0: { full: 10, perHeart: 2 },
+            1: { full: 10, perHeart: 2 },
+            2: { full: 10, perHeart: 2 },
+            3: { full: 10, perHeart: 2 }
+        };
+        const LEVEL_FLOW = { 0: 'mc', 1: 'mc', 2: 'fill', 3: 'set' };
+        let scoreTotals = { level0: 0, level1: 0, level2: 0, level3: 0 };
+        let mistakeLog = [];     // mistakes + reflections pending submission to the teacher
+        let lastMistake = null;  // the mistake currently awaiting the reflection choice
+        
+        // Tracking variables for correct percentage
+        let levelStats = { 
+            level0: { correct: 0, total: 0 },
+            level1: { correct: 0, total: 0 }, 
+            level2: { correct: 0, total: 0 }, 
+            level3: { correct: 0, total: 0 } 
+        };
+
+        // --- MATH GENERATOR ENGINE (Statistics, DSE Paper 1/2 style) ---
+        const MathGen = {
+            rand: (min, max) => Math.floor(Math.random() * (max - min + 1)) + min,
+            shuffle: (array) => [...array].sort(() => Math.random() - 0.5),
+            c: (coef, v) => coef === 1 ? v : (coef === -1 ? `-${v}` : `${coef}${v}`),
+            gcd: function(a, b) { return b ? this.gcd(b, a % b) : a; },
+
+            // ---- statistics helpers ----
+            int: (x) => Math.abs(x - Math.round(x)) < 1e-6,
+            r1: (x) => Math.round(x * 10) / 10,
+            r2: (x) => Math.round(x * 100) / 100,
+            r3: (x) => Math.round(x * 1000) / 1000,
+            d2: (x) => (Math.round(x * 100) / 100).toFixed(2),
+            d3: (x) => (Math.round(x * 1000) / 1000).toFixed(3),
+            d5: (x) => (Math.round(x * 100000) / 100000).toFixed(5),
+            meanOf: (arr) => arr.reduce((s, v) => s + v, 0) / arr.length,
+            sortNum: (arr) => [...arr].sort((a, b) => a - b),
+            medOfArr: function(arr) {
+                const s = this.sortNum(arr), n = s.length;
+                if (n === 0) return NaN;
+                return (n % 2 === 1) ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2;
+            },
+            // DSE quartiles: Q1 = median of lower half, Q3 = median of upper half
+            quOf: function(arr) {
+                const s = this.sortNum(arr), n = s.length;
+                if (n === 0) return { q1: NaN, q2: NaN, q3: NaN };
+                const q2 = this.medOfArr(s);
+                const lower = (n % 2 === 1) ? s.slice(0, (n - 1) / 2) : s.slice(0, n / 2);
+                const upper = (n % 2 === 1) ? s.slice((n + 1) / 2) : s.slice(n / 2);
+                return { q1: this.medOfArr(lower), q2: q2, q3: this.medOfArr(upper) };
+            },
+            varOf: function(arr) {
+                const m = this.meanOf(arr);
+                return arr.reduce((s, v) => s + (v - m) * (v - m), 0) / arr.length;
+            },
+            sdOf: function(arr) { return Math.sqrt(this.varOf(arr)); },
+            iqrOf: function(arr) { const q = this.quOf(arr); return q.q3 - q.q1; },
+            rangeOf: function(arr) { const s = this.sortNum(arr); return s[s.length - 1] - s[0]; },
+
+            // 4 distinct MC options from a TeX correct answer + candidate distractors
+            opts4: function(correct, cands) {
+                const out = new Set([correct]);
+                for (const c of cands) { if (out.size < 4) out.add(c); }
+                let step = 1;
+                while (out.size < 4) {
+                    const base = parseFloat(correct);
+                    const extra = isNaN(base) ? 'x' : String(+(base + step).toFixed(2));
+                    if (out.has(extra)) { step += 1; continue; }
+                    out.add(extra);
+                    step += 1;
+                }
+                return this.shuffle([...out].slice(0, 4).map(o => `$ ${o} $`));
+            },
+            numOpts: function(correct, cands) {
+                const out = new Set([String(correct)]);
+                for (const c of cands) { if (out.size < 4) out.add(String(c)); }
+                let s = 1;
+                while (out.size < 4) {
+                    const base = parseFloat(correct);
+                    out.add(isNaN(base) ? 'x' : String(+(base + s).toFixed(2)));
+                    s += 1;
+                }
+                return this.shuffle([...out].slice(0, 4).map(o => `$ ${o} $`));
+            },
+            yesNoOpts: function(ans) {
+                const fillers = [`\\text{Always}`, `\\text{Never}`, `\\text{Sometimes}`, `\\text{Usually}`, `\\text{Cannot be determined}`, `\\text{Insufficient information}`];
+                const extras = this.shuffle(fillers).slice(0, 3);
+                return this.shuffle([`\\text{${ans === 'yes' ? 'Yes' : 'No'}}`, ...extras].map(o => `$ ${o} $`));
+            },
+            stemHtml: function(stems, leafRows) {
+                let h = '<table class="stem-table stemleaf"><tr><th>Stem (tens)</th><th>Leaf (units)</th></tr>';
+                for (let i = 0; i < stems.length; i++) {
+                    h += `<tr><td>${stems[i]}</td><td>${leafRows[i]}</td></tr>`;
+                }
+                h += '</table>';
+                return h;
+            },
+            freqHtml: function(vals, freqs, rowLabels) {
+                const lbl = rowLabels || ['Value', 'Frequency'];
+                let h = `<table class="stem-table"><tr><th class="lbl">${lbl[0]}</th><th>` + vals.join('</th><th>') + '</th></tr>';
+                h += `<tr><td class="lbl">${lbl[1]}</td><td>` + freqs.join('</td><td>') + '</td></tr></table>';
+                return h;
+            },
+            // inline SVG box-and-whisker diagram, black-and-white textbook style.
+            // The full drawing (number line + axis label) fills ~88% of the white
+            // panel and is centred; value labels are large enough to sit near the
+            // question-text size; box/whisker/median/axis linework is slightly thick.
+            boxPlotSvg: function(minV, q1, med, q3, maxV, axisLabel) {
+                const CW = 560, CH = 126;         // white panel
+                const iW = 493, iH = 112;         // inner drawing artboard (~88% wide)
+                const dx = (CW - iW) / 2, dy = (CH - iH) / 2;
+                const axisW = 280;                // number-line span for min..max
+                const span = Math.max(maxV - minV, 1);
+                const x = v => (v - minV) / span * axisW;
+                const yTop = 12, yMid = 30, yBot = 46, yAxis = 86;
+                const labelX = axisW + 12;
+                let inner = '';
+                // whiskers at the box midpoint (no end caps)
+                inner += `<line x1="${x(minV)}" y1="${yMid}" x2="${x(q1)}" y2="${yMid}" stroke="#000000" stroke-width="2"/>`;
+                inner += `<line x1="${x(q3)}" y1="${yMid}" x2="${x(maxV)}" y2="${yMid}" stroke="#000000" stroke-width="2"/>`;
+                // unfilled box + median
+                inner += `<rect x="${x(q1)}" y="${yTop}" width="${Math.max(x(q3) - x(q1), 1)}" height="${yBot - yTop}" fill="none" stroke="#000000" stroke-width="2"/>`;
+                inner += `<line x1="${x(med)}" y1="${yTop}" x2="${x(med)}" y2="${yBot}" stroke="#000000" stroke-width="2.5"/>`;
+                // dotted guides down to the number line
+                [minV, maxV].forEach(v => {
+                    inner += `<line x1="${x(v)}" y1="${yMid}" x2="${x(v)}" y2="${yAxis}" stroke="#000000" stroke-width="1" stroke-dasharray="2.5 2.5"/>`;
+                });
+                [q1, med, q3].forEach(v => {
+                    inner += `<line x1="${x(v)}" y1="${yBot}" x2="${x(v)}" y2="${yAxis}" stroke="#000000" stroke-width="1" stroke-dasharray="2.5 2.5"/>`;
+                });
+                // number line
+                inner += `<line x1="${x(minV)}" y1="${yAxis}" x2="${x(maxV)}" y2="${yAxis}" stroke="#000000" stroke-width="1.5"/>`;
+                // value labels (black serif, question-text size)
+                [minV, q1, med, q3, maxV].forEach(v => {
+                    inner += `<text x="${x(v)}" y="${yAxis + 21}" text-anchor="middle" font-size="16" fill="#000000">${v}</text>`;
+                });
+                if (axisLabel) {
+                    inner += `<text x="${labelX}" y="${yAxis + 4}" text-anchor="start" font-size="16" fill="#000000">${axisLabel}</text>`;
+                }
+                let s = `<svg class="boxplot" width="${CW}" height="${CH}" viewBox="0 0 ${CW} ${CH}" xmlns="http://www.w3.org/2000/svg">`;
+                s += `<rect x="0" y="0" width="${CW}" height="${CH}" fill="#ffffff"/>`;
+                s += `<g transform="translate(${dx} ${dy})">${inner}</g>`;
+                s += '</svg>';
+                return s;
+            },
+            // build a sorted data list from a stem→leaves map
+            stemData: function(map) {
+                const data = [];
+                Object.keys(map).sort((a, b) => a - b).forEach(st => {
+                    map[st].forEach(lf => data.push(parseInt(st) * 10 + lf));
+                });
+                return data;
+            },
+
+            // signed exponent for TeX display: e.g. 5 -> "^{5}", -3 -> "^{-3}"
+            pexp: (e) => e === 0 ? '' : (e > 0 ? `^{${e}}` : `^{-${-e}}`),
+            // letter factor for TeX: x, x^{5}, x^{-3}
+            lfac: (v, e) => e === 0 ? '' : `${v}${e > 0 ? (e === 1 ? '' : `^{${e}}`) : `^{-${-e}}`}`,
+            // answer string with positive indices: {x:7, y:-4} -> "x^7/y^4"; {x:10, y:10} -> "(xy)^10"
+            monStr: function(map) {
+                const byE = {};
+                Object.keys(map).sort().forEach(l => {
+                    const e = map[l];
+                    if (e === 0) return;
+                    (byE[e] = byE[e] || []).push(l);
+                });
+                const expList = Object.keys(byE).map(Number).sort((a, b) => byE[a][0].localeCompare(byE[b][0]));
+                let num = '', den = '';
+                expList.forEach(e => {
+                    const ls = byE[e];
+                    const ae = Math.abs(e);
+                    const chunk = ls.length === 1
+                        ? (ae === 1 ? ls[0] : `${ls[0]}^${ae}`)
+                        : (ae === 1 ? `(${ls.join('')})` : `(${ls.join('')})^${ae}`);
+                    if (e > 0) num += chunk; else den += chunk;
+                });
+                if (num === '' && den === '') return '1';
+                if (den === '') return num;
+                if (num === '') return `1/${den}`;
+                return `${num}/${den}`;
+            },
+            // TeX version of monStr
+            monTex: function(map) {
+                const byE = {};
+                Object.keys(map).sort().forEach(l => {
+                    const e = map[l];
+                    if (e === 0) return;
+                    (byE[e] = byE[e] || []).push(l);
+                });
+                const expList = Object.keys(byE).map(Number).sort((a, b) => byE[a][0].localeCompare(byE[b][0]));
+                let num = '', den = '';
+                expList.forEach(e => {
+                    const ls = byE[e];
+                    const ae = Math.abs(e);
+                    const chunk = ls.length === 1
+                        ? (ae === 1 ? ls[0] : `${ls[0]}^{${ae}}`)
+                        : (ae === 1 ? `(${ls.join('')})` : `(${ls.join('')})^{${ae}}`);
+                    if (e > 0) num += chunk; else den += chunk;
+                });
+                if (num === '' && den === '') return '1';
+                if (den === '') return num;
+                if (num === '') return `\\frac{1}{${den}}`;
+                return `\\frac{${num}}{${den}}`;
+            },
+
+            // --- Level 0: Paper 2 MCQs (P2 Ch 14.1-14.7 Q211-257) ---
+            generateL0: function (typeIdx) {
+                const t = typeIdx % 8;
+                const instruction = "Answer the statistics question:";
+                let qHtml = '', answerStr = '', mcTex = '', opts = [], law = 'five_number_summary', src = '';
+
+                if (t === 0) {
+                    // Q211/218/219/229 style — read a box-and-whisker diagram (5-number summary)
+                    const minV = this.rand(10, 30);
+                    const q1 = minV + this.rand(5, 15);
+                    const med = q1 + this.rand(5, 15);
+                    const q3 = med + this.rand(5, 15);
+                    const maxV = q3 + this.rand(5, 15);
+                    const items = ['scores (in marks) of the students of a class in a test',
+                        'numbers of books read by some teachers in a term',
+                        'numbers of online hours spent by a class of students in a certain week',
+                        'numbers of training hours of some engineers in a year'];
+                    const axisLabels = ['Score (mark)', 'Number of books', 'Number of hours', 'Number of hours'];
+                    const itIdx = this.rand(0, 3);
+                    const item = items[itIdx];
+                    const ask = this.rand(0, 2);
+                    qHtml = `A box-and-whisker diagram shows the distribution of the ${item}. In the diagram, the minimum is ${minV}, the lower quartile is ${q1}, the median is ${med}, the upper quartile is ${q3} and the maximum is ${maxV}.<br>${this.boxPlotSvg(minV, q1, med, q3, maxV, axisLabels[itIdx])}<br>` +
+                        (ask === 0 ? 'Find the inter-quartile range of the distribution.'
+                            : (ask === 1 ? 'Find the range of the distribution.'
+                                : 'Find the median of the distribution.'));
+                    if (ask === 0) { answerStr = String(q3 - q1); mcTex = answerStr; opts = this.opts4(answerStr, [String(q3 - q1 + 2), String(q3 - q1 - 2), String(med - q1)]); }
+                    else if (ask === 1) { answerStr = String(maxV - minV); mcTex = answerStr; opts = this.opts4(answerStr, [String(maxV - minV + 3), String(maxV - minV - 2), String(q3 - q1)]); }
+                    else { answerStr = String(med); mcTex = answerStr; opts = this.opts4(answerStr, [String(q1), String(q3), String((q1 + q3) / 2)]); }
+                    src = 'DSE Paper 2 · Measures of Dispersion (bank Q211/218/219/229)';
+                } else if (t === 1) {
+                    // Q216/221/226 style — stem-and-leaf diagram → median / quartiles
+                    const n = [10, 12, 14][this.rand(0, 2)];
+                    const stems = [4, 5, 6];
+                    const leaves = {};
+                    let made = 0;
+                    while (made < n) {
+                        const st = stems[this.rand(0, 2)];
+                        (leaves[st] = leaves[st] || []).push(this.rand(0, 9));
+                        made++;
+                    }
+                    const data = this.stemData(leaves);
+                    const qq = this.quOf(data);
+                    const stemHtml = this.stemHtml(Object.keys(leaves).sort((a, b) => a - b),
+                        Object.keys(leaves).sort((a, b) => a - b).map(s => leaves[s].sort((a, b) => a - b).join(' ')));
+                    const item = ['hourly wages (in dollars) of some workers',
+                        'ages of the passengers in a bus',
+                        'numbers of books read by some students in a year'][this.rand(0, 2)];
+                    const ask = this.rand(0, 2);
+                    qHtml = `The stem-and-leaf diagram below shows the distribution of the ${item}.<br>${stemHtml}<br>` +
+                        (ask === 0 ? 'Find the median of the distribution.'
+                            : (ask === 1 ? 'Find the lower quartile of the distribution.'
+                                : 'Find the inter-quartile range of the distribution.'));
+                    if (ask === 0) { answerStr = String(qq.q2); mcTex = answerStr; opts = this.opts4(answerStr, [String(qq.q1), String(qq.q3), String(qq.q2 + 2)]); }
+                    else if (ask === 1) { answerStr = String(qq.q1); mcTex = answerStr; opts = this.opts4(answerStr, [String(qq.q2), String(qq.q3), String(qq.q1 + 1)]); }
+                    else { answerStr = String(qq.q3 - qq.q1); mcTex = answerStr; opts = this.opts4(answerStr, [String(qq.q3 - qq.q1 + 1), String(qq.q3 - qq.q1 - 1), String(qq.q3 - qq.q2)]); }
+                    law = 'stem_leaf';
+                    src = 'DSE Paper 2 · Measures of Dispersion (bank Q216/221/226)';
+                } else if (t === 2) {
+                    // Q215/223 style — frequency table → mean / standard deviation
+                    const vals = [2, 3, 4, 5, 6, 7, 8];
+                    const freqs = vals.map(() => this.rand(2, 9));
+                    const data = [];
+                    vals.forEach((v, i) => { for (let k = 0; k < freqs[i]; k++) data.push(v); });
+                    const tbl = this.freqHtml(vals.map(v => String(v)), freqs, ['Value', 'Frequency']);
+                    const item = ['numbers of merits obtained by some students in a year',
+                        'numbers of calculators owned by some students',
+                        'numbers of subjects taken by a class of students'][this.rand(0, 2)];
+                    const ask = this.rand(0, 1);
+                    if (ask === 0) {
+                        const m = this.meanOf(data);
+                        qHtml = `The table below shows the distribution of the ${item}.<br>${tbl}<br>Find the mean of the distribution correct to 2 decimal places.`;
+                        answerStr = this.d2(m); mcTex = answerStr;
+                        opts = this.opts4(answerStr, [this.d2(m + 0.3), this.d2(m - 0.3), this.d2(m + 0.6)]);
+                        law = 'mean_median_mode';
+                    } else {
+                        const sd = this.sdOf(data);
+                        qHtml = `The table below shows the distribution of the ${item}.<br>${tbl}<br>Find the standard deviation of the distribution correct to 2 decimal places.`;
+                        answerStr = this.d2(sd); mcTex = answerStr;
+                        opts = this.opts4(answerStr, [this.d2(sd + 0.4), this.d2(sd - 0.3), this.d2(sd + 0.9)]);
+                        law = 'std_dev';
+                    }
+                    src = 'DSE Paper 2 · Measures of Dispersion (bank Q215/223)';
+                } else if (t === 3) {
+                    // Q234/235/245/236/240 style — data change: ×k then +c
+                    const m = this.rand(20, 60), v = this.rand(9, 25), r = this.rand(10, 30), k = this.rand(2, 4), c = this.rand(2, 8);
+                    const style = this.rand(0, 1);
+                    if (style === 0) {
+                        const nm = (m + c) * k, nv = v * k * k, nr = r * k;
+                        qHtml = `The mean, the variance and the inter-quartile range of a set of numbers are ${m}, ${v} and ${r} respectively. If ${c} is added to each number of the set and each resulting number is then multiplied by ${k} to form a new set of numbers, find the mean, the variance and the inter-quartile range of the new set of numbers.`;
+                        answerStr = String(nm);
+                        mcTex = `\\text{Mean }${nm}\\text{, variance }${nv}\\text{, IQR }${nr}`;
+                        opts = this.shuffle([
+                            mcTex,
+                            `\\text{Mean }${nm}\\text{, variance }${nv * k}\\text{, IQR }${nr}`,
+                            `\\text{Mean }${m * k + c}\\text{, variance }${nv}\\text{, IQR }${nr + c}`,
+                            `\\text{Mean }${nm}\\text{, variance }${v * k}\\text{, IQR }${nr}`
+                        ].map(o => `$ ${o} $`));
+                    } else {
+                        const s = [4, 5, 6, 7][this.rand(0, 3)];
+                        const k2 = [2, 3, 4][this.rand(0, 2)];
+                        const c2 = this.rand(2, 9);
+                        qHtml = `The standard deviation of a set of numbers is ${s}. Each number of the set is multiplied by ${k2} and then ${c2} is added to each resulting number to form a new set of numbers. Find the standard deviation of the new set of numbers.`;
+                        answerStr = String(s * k2); mcTex = answerStr;
+                        opts = this.opts4(answerStr, [String(s * k2 + c2), String(s * k2 * k2), String(s + c2)]);
+                    }
+                    law = 'data_change';
+                    src = 'DSE Paper 2 · More about Dispersion (bank Q234/235/236/240/245)';
+                } else if (t === 4) {
+                    // Q237/241/243/244/248/252 style — standard score solving
+                    const vv = this.rand(0, 3);
+                    law = 'std_score';
+                    if (vv === 0) {
+                        const mu = this.rand(45, 75), sg = [4, 5, 6, 8, 10][this.rand(0, 4)];
+                        const z1 = -this.rand(2, 4), z2 = this.rand(1, 4);
+                        const x1 = mu + z1 * sg, x2 = mu + z2 * sg;
+                        const n1 = ['Peter', 'Tom', 'Ada'][this.rand(0, 2)];
+                        const n2 = ['Mary', 'Susan', 'John'][this.rand(0, 2)];
+                        qHtml = `In an examination, ${n1} gets ${x1} marks and ${['his', 'his', 'her'][this.rand(0, 2)]} standard score is ${z1} while ${n2} gets ${x2} marks and ${['her', 'her', 'his'][this.rand(0, 2)]} standard score is ${z2}. Find the mean of the examination scores.`;
+                        answerStr = String(mu); mcTex = answerStr;
+                        opts = this.opts4(answerStr, [String(mu + sg), String(mu - sg), String(mu + 2 * sg)]);
+                    } else if (vv === 1) {
+                        const mu = this.rand(40, 70), sg = [4, 5, 6, 8][this.rand(0, 3)];
+                        const z1 = -this.rand(2, 4), x1 = mu + z1 * sg;
+                        const n1 = ['Tom', 'Peter', 'Ada'][this.rand(0, 2)];
+                        qHtml = `The standard score of ${n1} in a Mathematics examination is ${z1}. If the score of ${n1} in the Mathematics examination is ${x1} marks and the mean of the scores of the Mathematics examination is ${mu} marks, then the standard deviation of the scores of the Mathematics examination is`;
+                        answerStr = String(sg); mcTex = answerStr;
+                        opts = this.opts4(answerStr, [String(sg + 1), String(sg * 2), String(Math.abs(z1))]);
+                    } else if (vv === 2) {
+                        const mu = this.rand(55, 75), sg = [5, 8, 10][this.rand(0, 2)];
+                        const z1 = -this.rand(2, 3), x1 = mu + z1 * sg;
+                        const x2 = mu + this.rand(1, 3) * sg;
+                        const z2 = (x2 - mu) / sg;
+                        const n1 = ['Peter', 'Tom', 'Ada'][this.rand(0, 2)];
+                        const n2 = ['Susan', 'Mary', 'John'][this.rand(0, 2)];
+                        qHtml = `In a test, the mean of the test scores is ${mu} marks. ${n1} gets ${x1} marks in the test and ${['his', 'his', 'her'][this.rand(0, 2)]} standard score is ${z1}. If ${n2} gets ${x2} marks in the test, then ${['her', 'her', 'his'][this.rand(0, 2)]} standard score is`;
+                        answerStr = String(z2); mcTex = answerStr;
+                        opts = this.opts4(answerStr, [String(z2 + 1), String(z2 - 1), String(-z2)]);
+                    } else {
+                        const mu = this.rand(50, 80), sg = [5, 8, 10][this.rand(0, 2)];
+                        const z2 = this.rand(1, 3), x2 = mu + z2 * sg;
+                        const z1 = -this.rand(2, 4), x1 = mu + z1 * sg;
+                        const n1 = ['Mary', 'Ada', 'Susan'][this.rand(0, 2)];
+                        const n2 = ['John', 'Peter', 'Tom'][this.rand(0, 2)];
+                        qHtml = `In an examination, the standard deviation of the examination scores is ${sg} marks. The examination score of ${n1} is ${x2} marks and ${['her', 'her', 'his'][this.rand(0, 2)]} standard score is ${z2}. If the standard score of ${n2} in the examination is ${z1}, then ${['his', 'his', 'her'][this.rand(0, 2)]} examination score is`;
+                        answerStr = String(x1); mcTex = answerStr;
+                        opts = this.opts4(answerStr, [String(x1 + sg), String(x1 - sg), String(x1 + 2 * sg)]);
+                    }
+                    src = 'DSE Paper 2 · More about Dispersion (bank Q237/241/243/244/248/252)';
+                } else if (t === 5) {
+                    // Q222 style — what a box-and-whisker diagram can give
+                    qHtml = `Which of the following can be obtained from any box-and-whisker diagram?<br>I.&nbsp; Range &nbsp;&nbsp; II.&nbsp; Standard deviation &nbsp;&nbsp; III.&nbsp; Inter-quartile range`;
+                    answerStr = 'I and III only';
+                    mcTex = `\\text{I and III only}`;
+                    opts = this.shuffle([
+                        `\\text{I only}`, `\\text{II only}`, `\\text{I and III only}`, `\\text{II and III only}`
+                    ].map(o => `$ ${o} $`));
+                    law = 'five_number_summary';
+                    src = 'DSE Paper 2 · Measures of Dispersion (bank Q222)';
+                } else if (t === 6) {
+                    // Q247 style — variance of a {ka + b_i} pattern
+                    const a = this.rand(10, 40);
+                    const pick = this.rand(0, 1);
+                    if (pick === 0) {
+                        qHtml = `The variance of the six numbers ${a}<i>a</i>+3, ${a}<i>a</i>+5, ${a}<i>a</i>+9, ${a}<i>a</i>+11, ${a}<i>a</i>+15 and ${a}<i>a</i>+17 is`;
+                        answerStr = '25'; mcTex = '25';
+                        opts = this.opts4('25', ['5', '10', `${a}<i>a</i>+25`]);
+                    } else {
+                        qHtml = `The variance of the four numbers ${a}b, ${a}b+2, ${a}b+4 and ${a}b+6 is`;
+                        answerStr = '5'; mcTex = '5';
+                        opts = this.opts4('5', ['10', '25', `${a}b+5`]);
+                    }
+                    law = 'data_change';
+                    src = 'DSE Paper 2 · More about Dispersion (bank Q247)';
+                } else {
+                    // Q250 style — score adjustment: median ×p + c; z unchanged
+                    const p = [20, 30, 40, 50][this.rand(0, 3)];
+                    const mPool = [20, 25, 30, 35, 40].filter(mm => (mm * p) % 100 === 0);
+                    const m = mPool[this.rand(0, mPool.length - 1)];
+                    const c = this.rand(2, 10);
+                    const nm = m * (1 + p / 100) + c;
+                    const z0 = -this.rand(1, 3);
+                    const v1 = ['x', 'y', 'm'][this.rand(0, 2)];
+                    const v2 = ['z', 'u', 'w'][this.rand(0, 2)];
+                    qHtml = `In a test, the median of the test scores of a class of students is ${m} marks. All the students fail in the test, so the test score of each student is adjusted such that each score is increased by ${p}% and then extra ${c} marks are added. Let ${v1} marks be the median of the test scores of the class of students after the score adjustment. In the test, the standard score of a student before the score adjustment is ${z0}. Denote the standard score of this student after the score adjustment by ${v2}. Find ${v1} and ${v2}.`;
+                    answerStr = String(nm);
+                    mcTex = `\\text{${v1} = ${nm} and ${v2} = ${z0}}`;
+                    opts = this.shuffle([
+                        mcTex,
+                        `\\text{${v1} = ${nm} and ${v2} = ${z0 + 1}}`,
+                        `\\text{${v1} = ${nm + c} and ${v2} = ${z0}}`,
+                        `\\text{${v1} = ${m + c} and ${v2} = ${z0 + 1}}`
+                    ].map(o => `$ ${o} $`));
+                    law = 'data_change';
+                    src = 'DSE Paper 2 · More about Dispersion (bank Q250)';
+                }
+
+                return {
+                    instruction: instruction,
+                    paper: "Paper 2",
+                    src: src,
+                    qHtml: qHtml, text: qHtml,
+                    answerStr: answerStr, mcAnswerStr: mcTex,
+                    variables: [], options: opts,
+                    firstStepLaw: law
+                };
+            },
+
+            // --- Level 1: S3 basics (J16 Statistics Q289/Q290; Sample-P1-Q9 excluded, Paper 1 fill-in) ---
+            generateL1: function (typeIdx) {
+                const t = typeIdx % 4;
+                const instruction = "Solve the statistics problem:";
+                let qHtml = '', answerStr = '', mcTex = '', opts = [], law = 'freq_table', src = '';
+
+                if (t === 0) {
+                    // Q289(a) style — list of data → median / mean
+                    const data = [];
+                    while (data.length < 5) data.push(this.rand(50, 70));
+                    const med = this.medOfArr(data);
+                    const m = this.meanOf(data);
+                    const ask = this.rand(0, 1);
+                    qHtml = `The data below show the percentages of customers who bought newspaper A from a magazine stall in city H for five days randomly selected in a certain week:<br>${data.join('% &nbsp; ')}%<br>Find the ${ask === 0 ? 'median' : 'mean'} of the above data.`;
+                    if (ask === 0) {
+                        answerStr = String(med); mcTex = answerStr;
+                        opts = this.numOpts(answerStr, [String(m), String(med + 2), String(med - 1)]);
+                    } else {
+                        answerStr = String(this.r1(m)); mcTex = answerStr;
+                        opts = this.numOpts(answerStr, [String(med), String(this.r1(m) + 1), String(this.r1(m) - 1)]);
+                    }
+                    law = 'mean_median_mode';
+                    src = 'S3 Statistics · HKDSE 12-P1-Q10(a)';
+                } else if (t === 1) {
+                    // Q289(b)(i) style — add a group with known mean → new mean
+                    let n1, n2, m1, m2, nm;
+                    let tries2 = 0;
+                    do {
+                        n1 = this.rand(10, 25); n2 = this.rand(2, 5);
+                        m1 = this.rand(15, 30); nm = this.rand(15, 30);
+                        m2 = (nm * (n1 + n2) - n1 * m1) / n2;
+                        tries2++;
+                    } while ((!this.int(m2) || m2 < 8 || m2 > 35) && tries2 < 200);
+                    if (!this.int(m2)) { m2 = m1; nm = m1; }
+                    const n0 = ['Tom', 'Ada', 'Peter'][this.rand(0, 2)];
+                    qHtml = `${n0} conducts a survey on the numbers of hours spent on doing homework in a week by secondary students. Questionnaires are sent out and ${n1} of them are returned. It is found that the mean of the numbers of hours recorded in these ${n1} questionnaires is ${m1}. ${n0} receives ${n2} more questionnaires. He finds that the mean of the numbers of hours recorded in these ${n2} questionnaires is ${m2}.<br>Write down the mean of the numbers of hours recorded in the ${n1 + n2} questionnaires.`;
+                    answerStr = String(nm); mcTex = answerStr;
+                    opts = this.numOpts(answerStr, [String(m1), String(m2), String(nm + 2)]);
+                    law = 'mean_median_mode';
+                    src = 'S3 Statistics · HKDSE 12-P1-Q10(b)(i)';
+                } else if (t === 2) {
+                    // Q289(b)(ii) style — can the median stay the same after adding data?
+                    const orig = [];
+                    while (orig.length < 20) orig.push(this.rand(10, 39));
+                    const med = this.medOfArr(orig);
+                    const two1 = 19, two2 = 20;
+                    const sumXY = 18 * 4 - two1 - two2;
+                    let possible = false;
+                    for (let x = 0; x <= sumXY; x++) {
+                        const y = sumXY - x;
+                        if (this.medOfArr([...orig, two1, two2, x, y]) === med) { possible = true; break; }
+                    }
+                    const leavesMap = {};
+                    orig.forEach(v => { const s = Math.floor(v / 10); (leavesMap[s] = leavesMap[s] || []).push(v % 10); });
+                    const stems = Object.keys(leavesMap).sort((a, b) => a - b);
+                    const stemHtml = this.stemHtml(stems, stems.map(s => leavesMap[s].sort((a, b) => a - b).join(' ')));
+                    const n0 = ['Tom', 'Ada', 'Peter'][this.rand(0, 2)];
+                    qHtml = `${n0} conducts a survey on the numbers of hours spent on doing homework in a week by secondary students. The stem-and-leaf diagram below shows the numbers of hours recorded in the twenty questionnaires:<br>${stemHtml}<br>It is given that the median of the numbers of hours recorded in the twenty questionnaires is ${med}. ${n0} receives four more questionnaires. He finds that the mean of the numbers of hours recorded in these four questionnaires is 18. It is found that the numbers of hours recorded in two of these four questionnaires are 19 and 20. Is it possible that the median of the numbers of hours recorded in the twenty-four questionnaires is the same as the median found above? Explain your answer.`;
+                    answerStr = possible ? 'yes' : 'no';
+                    mcTex = possible ? `\\text{Yes}` : `\\text{No}`;
+                    opts = this.yesNoOpts(answerStr);
+                    law = 'mean_median_mode';
+                    src = 'S3 Statistics · HKDSE 12-P1-Q10(b)(ii)';
+                } else {
+                    // Q290 style — frequency table with unknown k (mode / median / mean)
+                    const vals = [0, 1, 2, 3, 4];
+                    const j = this.rand(0, 4);
+                    const freqs = vals.map((v, i) => i === j ? null : this.rand(2, 9));
+                    const sumF = freqs.filter(f => f !== null).reduce((s, v) => s + v, 0);
+                    const sumX = vals.reduce((s, v, i) => s + (i === j ? 0 : v * freqs[i]), 0);
+                    const mk = (k) => {
+                        const f = [...freqs]; f[j] = k;
+                        const data = [];
+                        vals.forEach((v, i) => { for (let q2 = 0; q2 < f[i]; q2++) data.push(v); });
+                        return data;
+                    };
+                    const tbl = this.freqHtml(vals.map(v => String(v)),
+                        freqs.map(f => f === null ? 'k' : String(f)),
+                        ['Number of children', 'Number of families']);
+                    const sub = this.rand(0, 2);
+                    if (sub === 0) {
+                        const modeVal = vals.filter((v, i) => i !== j)[this.rand(0, 3)];
+                        const fMode = freqs[vals.indexOf(modeVal)];
+                        const ask = this.rand(0, 1);
+                        qHtml = `The following table shows the distribution of the numbers of children of some families:<br>${tbl}<br>It is given that k is a positive integer. If the mode of the distribution is ${modeVal}, write down the ${ask === 0 ? 'least' : 'greatest'} possible value of k.`;
+                        answerStr = String(ask === 0 ? 1 : (fMode - 1)); mcTex = answerStr;
+                        opts = this.numOpts(answerStr, [String(fMode), String(fMode + 2), String(ask === 0 ? 2 : fMode - 2)]);
+                    } else if (sub === 1) {
+                        let medVal = null, ks = [];
+                        for (const cand of [1, 2, 3, 4, 0]) {
+                            const cks = [];
+                            for (let k = 1; k <= 60; k++) { if (this.medOfArr(mk(k)) === cand) cks.push(k); }
+                            if (cks.length > 0) { medVal = cand; ks = cks; break; }
+                        }
+                        if (ks.length === 0) { medVal = 2; ks = [1]; }
+                        const ask = this.rand(0, 1);
+                        qHtml = `The following table shows the distribution of the numbers of children of some families:<br>${tbl}<br>It is given that k is a positive integer. If the median of the distribution is ${medVal}, write down the ${ask === 0 ? 'least' : 'greatest'} possible value of k.`;
+                        answerStr = String(ask === 0 ? ks[0] : ks[ks.length - 1]); mcTex = answerStr;
+                        opts = this.numOpts(answerStr, [String(ask === 0 ? ks[0] + 1 : ks[ks.length - 1] - 1), String(ks[0]), String(ks[ks.length - 1] + 2)]);
+                    } else {
+                        let mSol = null, kSol = null;
+                        for (let kk = 1; kk <= 120; kk++) {
+                            const mm = (sumX + vals[j] * kk) / (sumF + kk);
+                            if (this.int(mm) && mm > 0 && mm !== vals[j] && mm < 10) { mSol = mm; kSol = kk; break; }
+                        }
+                        if (mSol === null) {
+                            const modeVal = vals.filter((v, i) => i !== j)[this.rand(0, 3)];
+                            const fMode = freqs[vals.indexOf(modeVal)];
+                            qHtml = `The following table shows the distribution of the numbers of children of some families:<br>${tbl}<br>It is given that k is a positive integer. If the mode of the distribution is ${modeVal}, write down the greatest possible value of k.`;
+                            answerStr = String(fMode - 1); mcTex = answerStr;
+                            opts = this.numOpts(answerStr, [String(fMode), String(fMode + 2), '1']);
+                        } else {
+                            qHtml = `The following table shows the distribution of the numbers of children of some families:<br>${tbl}<br>It is given that k is a positive integer. If the mean of the distribution is ${mSol}, find the value of k.`;
+                            answerStr = String(kSol); mcTex = answerStr;
+                            opts = this.numOpts(answerStr, [String(kSol + 1), String(kSol - 1), String(kSol + 2)]);
+                        }
+                    }
+                    src = 'S3 Statistics · HKDSE 18-P1-Q11';
+                }
+
+                return {
+                    instruction: instruction,
+                    paper: "Paper 1",
+                    src: src,
+                    qHtml: qHtml, text: qHtml,
+                    answerStr: answerStr, mcAnswerStr: mcTex,
+                    variables: [], options: opts,
+                    firstStepLaw: law
+                };
+            },
+
+            // --- Level 2: measures of dispersion (P1 Ch 14.1-14.5 Q76-93, Paper 1 fill-in) ---
+            generateL2: function (typeIdx) {
+                const t = typeIdx % 7;
+                const instruction = "Solve the statistics problem:";
+                let qHtml = '', answerStr = '', mcTex = '', opts = [], law = 'std_dev', src = '';
+
+                if (t === 0) {
+                    // Q80/87 style — frequency table → median / mode / standard deviation
+                    const vals = [0, 1, 2, 3];
+                    const freqs = vals.map(() => this.rand(4, 15));
+                    const data = [];
+                    vals.forEach((v, i) => { for (let k = 0; k < freqs[i]; k++) data.push(v); });
+                    const tbl = this.freqHtml(vals.map(v => String(v)), freqs,
+                        ['Number of calculators', 'Number of students']);
+                    const ask = this.rand(0, 2);
+                    qHtml = `The table below shows the distribution of the numbers of calculators owned by some students.<br>${tbl}<br>Find the ${['median', 'mode', 'standard deviation'][ask]} of the above distribution.`;
+                    if (ask === 0) {
+                        const med = this.medOfArr(data);
+                        answerStr = String(med); mcTex = answerStr;
+                        opts = this.numOpts(answerStr, [String(med + 1), String(med - 1), String(this.meanOf(data))]);
+                        law = 'mean_median_mode';
+                    } else if (ask === 1) {
+                        let best = vals[0], bestF = -1, tie = false;
+                        vals.forEach((v, i) => {
+                            if (freqs[i] > bestF) { best = v; bestF = freqs[i]; tie = false; }
+                            else if (freqs[i] === bestF) tie = true;
+                        });
+                        if (tie) { vals.forEach((v, i) => { if (freqs[i] === bestF) best = Math.min(best, v); }); }
+                        answerStr = String(best); mcTex = answerStr;
+                        opts = this.numOpts(answerStr, [String(best + 1), String(best - 1), String(best + 2)]);
+                        law = 'mean_median_mode';
+                    } else {
+                        const sd = this.sdOf(data);
+                        answerStr = this.d3(sd); mcTex = answerStr;
+                        opts = this.numOpts(answerStr, [this.d3(sd + 0.1), this.d3(sd - 0.1), this.d3(sd + 0.2)]);
+                        law = 'std_dev';
+                    }
+                    src = 'DSE Paper 1 · Measures of Dispersion (14 P1 Q4 / 20 P1 Q9)';
+                } else if (t === 1) {
+                    // Q84 style — stem-and-leaf with unknowns a, b: mean & range given → median / SD
+                    let stemA, leaves, b, a, extraLeaf, data, R, M, tries = 0;
+                    do {
+                        stemA = this.rand(5, 7);
+                        leaves = [];
+                        for (let i2 = 0; i2 < 13; i2++) leaves.push(this.rand(0, 9));
+                        a = this.rand(0, 9);
+                        b = this.rand(5, 8);
+                        extraLeaf = this.rand(0, 4);
+                        data = [...leaves.map(lf => stemA * 10 + lf), stemA * 10 + a, (stemA + 1) * 10 + extraLeaf, (stemA + 1) * 10 + b];
+                        M = this.meanOf(data);
+                        R = this.rangeOf(data);
+                        tries++;
+                        if (!this.int(M) || R < 10 || leaves.includes(a)) continue;
+                        let sols = 0;
+                        for (let aa = 0; aa <= 9 && sols <= 1; aa++) for (let bb = 0; bb <= 9 && sols <= 1; bb++) {
+                            const dd = [...leaves.map(lf => stemA * 10 + lf), stemA * 10 + aa, (stemA + 1) * 10 + extraLeaf, (stemA + 1) * 10 + bb];
+                            if (this.meanOf(dd) === M && this.rangeOf(dd) === R) sols++;
+                        }
+                        if (sols === 1) break;
+                    } while (tries < 5000);
+                    if (tries >= 5000) { a = 9; b = 8; data = [...leaves.map(lf => stemA * 10 + lf), stemA * 10 + a, (stemA + 1) * 10 + extraLeaf, (stemA + 1) * 10 + b]; M = Math.round(this.meanOf(data)); R = this.rangeOf(data); }
+                    const med = this.medOfArr(data);
+                    const sd = this.sdOf(data);
+                    const stemHtml = this.stemHtml([String(stemA), String(stemA + 1)],
+                        [[...leaves, a].sort((x, y) => x - y).map(d => d === a ? '<i>a</i>' : d).join(' '),
+                            extraLeaf + ' <i>b</i>']);
+                    const ask = this.rand(0, 1);
+                    qHtml = `The stem-and-leaf diagram below shows the distribution of the hourly wages (in dollars) of the workers in a group.<br>${stemHtml}<br>It is given that the mean and the range of the above distribution are \\$${M} and \\$${R} respectively.<br><br>Find the ${ask === 0 ? 'median' : 'standard deviation'} of the above distribution.`;
+                    if (ask === 0) {
+                        answerStr = String(med); mcTex = answerStr;
+                        opts = this.numOpts(answerStr, [String(med + 1), String(med - 1), String(med + 2)]);
+                        law = 'mean_median_mode';
+                    } else {
+                        answerStr = this.d2(sd); mcTex = answerStr;
+                        opts = this.numOpts(answerStr, [this.d2(sd + 0.3), this.d2(sd - 0.3), this.d2(sd + 0.6)]);
+                        law = 'std_dev';
+                    }
+                    src = 'DSE Paper 1 · Measures of Dispersion (17 P1 Q11)';
+                } else if (t === 2) {
+                    // Q81(b) style — box plot 5-number + mean; remove values → new mean
+                    let n, m, nm, p1, p2, p3, p4, tries = 0;
+                    do {
+                        m = this.rand(50, 72);
+                        p1 = this.rand(20, 40); p2 = this.rand(40, 60);
+                        p3 = this.rand(60, 80); p4 = this.rand(80, 100);
+                        const S = p1 + p2 + p3 + p4;
+                        n = 0; nm = 0;
+                        for (let nn = 25; nn <= 45; nn++) {
+                            const top = nn * m - S;
+                            if (top > 0 && top % (nn - 4) === 0) {
+                                const cand = top / (nn - 4);
+                                if (cand >= 20 && cand <= 90 && cand !== m) { n = nn; nm = cand; break; }
+                            }
+                        }
+                        tries++;
+                    } while (n === 0 && tries < 300);
+                    const minB = p1 - this.rand(5, 15), q1B = p2 - 5, medB = p3 - 8, q3B = p3 + 8, maxB = p4 + this.rand(5, 15);
+                    qHtml = `There are ${n} paintings in an art gallery. The box-and-whisker diagram below shows the distribution of the prices (in thousand dollars) of the paintings in the art gallery:<br>${this.boxPlotSvg(minB, q1B, medB, q3B, maxB, 'Price (thousand dollars)')}<br>It is given that the mean of this distribution is ${m} thousand dollars.<br>Four paintings of respective prices (in thousand dollars) ${p1}, ${p2}, ${p3} and ${p4} are now donated to a museum. Find the mean of the prices of the remaining paintings in the art gallery.`;
+                    answerStr = String(nm); mcTex = answerStr;
+                    opts = this.numOpts(answerStr, [String(m), String(nm + 1), String(nm - 1)]);
+                    law = 'mean_median_mode';
+                    src = 'DSE Paper 1 · Measures of Dispersion (14 P1 Q11(b))';
+                } else if (t === 3) {
+                    // Q78(b)/87(b) style — add/remove one value → change in SD
+                    const vals = [1, 2, 3, 4];
+                    const freqs = vals.map(() => this.rand(3, 8));
+                    const data = [];
+                    vals.forEach((v, i) => { for (let k = 0; k < freqs[i]; k++) data.push(v); });
+                    const sd1 = this.sdOf(data);
+                    const remVal = vals[this.rand(0, 3)];
+                    const remIdx = data.indexOf(remVal);
+                    const data2 = [...data.slice(0, remIdx), ...data.slice(remIdx + 1)];
+                    const sd2 = this.sdOf(data2);
+                    const dec = sd2 < sd1;
+                    const change = Math.abs(sd2 - sd1);
+                    const tbl = this.freqHtml(vals.map(v => String(v)), freqs,
+                        ['Number of family members', 'Number of employees']);
+                    qHtml = `The table below shows the distribution of the numbers of family members of the employees of company D.<br>${tbl}<br>An employee leaves company D. The number of family members of this employee is ${remVal}. Find the ${dec ? 'decrease' : 'increase'} in the standard deviation of the numbers of family members of the employees of company D due to the leaving of this employee.`;
+                    answerStr = this.d5(change); mcTex = answerStr;
+                    opts = this.numOpts(answerStr, [this.d3(change + 0.1), this.d3(Math.abs(change - 0.1)), this.d3(change + 0.2)]);
+                    law = 'std_dev';
+                    src = 'DSE Paper 1 · Measures of Dispersion (13 P1 Q9(b) / 20 P1 Q9(b))';
+                } else if (t === 4) {
+                    // Q88 style — stem-and-leaf: range = 3 × IQR → find w
+                    // Constructed so that w = 3·IQR + min − 50 lands exactly in 0..8
+                    const i = [13, 14, 15][this.rand(0, 2)];
+                    const wPick = this.rand(0, 8);
+                    const m0 = 50 + wPick - 3 * i;          // the minimum value
+                    const q1max = (i === 15) ? 30 : (i === 14 ? 32 : 33);
+                    const q1 = this.rand(Math.max(20, m0 + 3), q1max);
+                    const q3 = q1 + i;
+                    const vals = [m0, m0 + 1, m0 + 2, q1, q1 + 1, q1 + 2, q1 + 3, q1 + 4, q1 + 5, q1 + 6, q1 + 7, q3, q3 + 1, q3 + 2];
+                    const leavesMap = {};
+                    vals.forEach(v => { const s = Math.floor(v / 10); (leavesMap[s] = leavesMap[s] || []).push(v % 10); });
+                    leavesMap[5] = ['w'];
+                    const stems = Object.keys(leavesMap).sort((a, b) => a - b);
+                    const stemHtml = this.stemHtml(stems, stems.map(s => leavesMap[s].sort((a, b) => a - b).map(lf => (s === '5' ? '<i>w</i>' : lf)).join(' ')));
+                    qHtml = `The stem-and-leaf diagram below shows the distribution of the weights (in grams) of the letters in a bag.<br>${stemHtml}<br>It is given that the range of the above distribution is the triple of its inter-quartile range.<br><br>Find w.`;
+                    answerStr = String(wPick); mcTex = answerStr;
+                    opts = this.numOpts(answerStr, [String((wPick + 1) % 10), String((wPick + 2) % 10), String((wPick + 3) % 10)]);
+                    law = 'stem_leaf';
+                    src = 'DSE Paper 1 · Measures of Dispersion (20 P1 Q11(a))';
+                } else if (t === 5) {
+                    // Q92 style — frequency table with unknown s: median condition + greatest SD
+                    const vals = [5, 6, 7, 8, 9];
+                    const freqs = [this.rand(6, 12), this.rand(8, 15), this.rand(1, 4), null, this.rand(7, 14)];
+                    const mk = (s) => {
+                        const f = [...freqs]; f[3] = s;
+                        const data = [];
+                        vals.forEach((v, i) => { for (let k = 0; k < f[i]; k++) data.push(v); });
+                        return data;
+                    };
+                    let ks = [];
+                    for (let s = 1; s <= 80; s++) { if (this.medOfArr(mk(s)) === 7) ks.push(s); }
+                    if (ks.length === 0) { ks = [5]; }
+                    const tbl = this.freqHtml(vals.map(v => String(v)),
+                        freqs.map(f => f === null ? 's' : String(f)),
+                        ['Number of pens', 'Number of students']);
+                    const ask = this.rand(0, 2);
+                    if (ask === 0) {
+                        qHtml = `The table below shows the distribution of the numbers of pens owned by some students.<br>${tbl}<br>The median of the distribution is 7.<br><br>Find the least possible value of s.`;
+                        answerStr = String(ks[0]); mcTex = answerStr;
+                        opts = this.numOpts(answerStr, [String(ks[0] + 1), String(ks[0] + 2), String(ks[ks.length - 1])]);
+                    } else if (ask === 1) {
+                        qHtml = `The table below shows the distribution of the numbers of pens owned by some students.<br>${tbl}<br>The median of the distribution is 7.<br><br>Write down the greatest possible value of s.`;
+                        answerStr = String(ks[ks.length - 1]); mcTex = answerStr;
+                        opts = this.numOpts(answerStr, [String(ks[ks.length - 1] + 1), String(ks[ks.length - 1] - 1), String(ks[0])]);
+                    } else {
+                        let maxSd = 0;
+                        ks.forEach(s => { maxSd = Math.max(maxSd, this.sdOf(mk(s))); });
+                        qHtml = `The table below shows the distribution of the numbers of pens owned by some students.<br>${tbl}<br>The median of the distribution is 7.<br><br>Find the greatest possible standard deviation of the distribution.`;
+                        answerStr = this.d2(maxSd); mcTex = answerStr;
+                        opts = this.numOpts(answerStr, [this.d2(maxSd + 0.1), this.d2(maxSd - 0.1), this.d2(maxSd + 0.2)]);
+                        law = 'std_dev';
+                    }
+                    src = 'DSE Paper 1 · Measures of Dispersion (25 P1 Q9)';
+                } else {
+                    // Q226/88(b) style — probability from a stem-and-leaf (fraction answer)
+                    const leavesMap = {};
+                    for (const st of [5, 6, 7]) {
+                        leavesMap[st] = [];
+                        const cnt = [3, 6, 7][st - 5];
+                        for (let i = 0; i < cnt; i++) leavesMap[st].push(this.rand(0, 9));
+                    }
+                    const data = this.stemData(leavesMap);
+                    const qq = this.quOf(data);
+                    const threshold = qq.q1;
+                    const count = data.filter(v => v >= threshold).length;
+                    const g = this.gcd(count, data.length);
+                    const num = count / g, den = data.length / g;
+                    const stems = Object.keys(leavesMap).sort((a, b) => a - b);
+                    const stemHtml = this.stemHtml(stems, stems.map(s => leavesMap[s].sort((a, b) => a - b).join(' ')));
+                    const ask = this.rand(0, 1);
+                    if (ask === 0) {
+                        qHtml = `The stem-and-leaf diagram below shows the distribution of the weights (in kg) of a group of workers.<br>${stemHtml}<br>If a worker is randomly selected from the group, find the probability that the weight of the selected worker is not less than the lower quartile of the distribution.`;
+                    } else {
+                        const mode = (() => {
+                            const counts = {};
+                            data.forEach(v => counts[v] = (counts[v] || 0) + 1);
+                            let best = this.sortNum(data)[0];
+                            Object.keys(counts).forEach(k => { if (counts[k] > counts[best]) best = +k; });
+                            return best;
+                        })();
+                        const cnt2 = data.filter(v => v >= mode).length;
+                        const g2 = this.gcd(cnt2, data.length);
+                        qHtml = `The stem-and-leaf diagram below shows the distribution of the weights (in kg) of a group of workers.<br>${stemHtml}<br>If a worker is randomly selected from the group, find the probability that the weight of the selected worker is not less than the mode of the distribution.`;
+                        answerStr = `${cnt2 / g2}/${data.length / g2}`;
+                        mcTex = `\\frac{${cnt2 / g2}}{${data.length / g2}}`;
+                        opts = this.shuffle([mcTex, `\\frac{${cnt2 / g2 + 1}}{${data.length / g2}}`, `\\frac{${cnt2 / g2}}{${data.length / g2 + 1}}`, `\\frac{${cnt2 / g2 - 1}}{${data.length / g2}}`].map(o => `$ ${o} $`));
+                        law = 'stem_leaf';
+                        src = 'DSE Paper 1 · Measures of Dispersion (20 P1 Q11(b))';
+                        return {
+                            instruction, paper: 'Paper 1', src,
+                            qHtml, text: qHtml,
+                            answerStr, mcAnswerStr: mcTex,
+                            variables: [], options: opts,
+                            firstStepLaw: law
+                        };
+                    }
+                    answerStr = `${num}/${den}`;
+                    mcTex = `\\frac{${num}}{${den}}`;
+                    opts = this.shuffle([mcTex, `\\frac{${num + 1}}{${den}}`, `\\frac{${num}}{${den + 1}}`, `\\frac{${num - 1}}{${den}}`].map(o => `$ ${o} $`));
+                    law = 'stem_leaf';
+                    src = 'DSE Paper 1 · Measures of Dispersion (20 P1 Q11(b) / Paper 2 bank Q226)';
+                }
+
+                return {
+                    instruction: instruction,
+                    paper: "Paper 1",
+                    src: src,
+                    qHtml: qHtml, text: qHtml,
+                    answerStr: answerStr, mcAnswerStr: mcTex,
+                    variables: [], options: opts,
+                    firstStepLaw: law
+                };
+            },
+
+            
+            // --- Level 3: (a)(b)(c) sets from P1 Ch 14.6-14.7 Section B (Q94-99) ---
+            generateL3Set: function() {
+                const t = this.rand(0, 5);
+                const setSrc = [
+                    'DSE Paper 1 · Standard Score (Maths Practice Paper P1 Q15)',
+                    'DSE Paper 1 · Data Change (12 P1 Q15)',
+                    'DSE Paper 1 · Standard Score (13 P1 Q15)',
+                    'DSE Paper 1 · Standard Score (15 P1 Q15)',
+                    'DSE Paper 1 · Standard Score (16 P1 Q16)',
+                    'DSE Paper 1 · Measures of Dispersion (23 P1 Q11)'
+                ][t];
+                let parts;
+                if (t === 0) parts = this.setStat1();
+                else if (t === 1) parts = this.setStat2();
+                else if (t === 2) parts = this.setStat3();
+                else if (t === 3) parts = this.setStat4();
+                else if (t === 4) parts = this.setStat5();
+                else parts = this.setStat6();
+                parts.forEach(p => { p.src = setSrc; });
+                return parts;
+            },
+
+            // helper: one (a)/(b)/(c) part with auto options
+            statPart: function(qHtml, ans, law, dist) {
+                const isYN = (ans === 'yes' || ans === 'no');
+                const options = isYN ? this.yesNoOpts(ans) : this.numOpts(ans, dist);
+                const mcTex = isYN ? `\\text{${ans === 'yes' ? 'Yes' : 'No'}}` : String(ans);
+                return {
+                    instruction: "Solve the statistics problem:",
+                    qHtml: qHtml, text: qHtml,
+                    answerStr: ans, mcAnswerStr: mcTex,
+                    variables: [], firstStepLaw: law,
+                    options: options
+                };
+            },
+
+            // Q94 style — z of another student; deletion of a score equal to the mean
+            setStat1: function() {
+                const mu = this.rand(45, 70);
+                const sg = [4, 5, 6, 8][this.rand(0, 3)];
+                const zM = -this.rand(2, 3);
+                const xM = mu + zM * sg;
+                const xJ = mu + 3 * sg;
+                return [
+                    this.statPart(`The mean score of a class of students in a test is ${mu} marks. The scores of Mary and John in the test are ${xM} marks and ${xJ} marks respectively. The standard score of Mary in the test is ${zM}.<br>Find the standard score of John in the test.`,
+                        '3', 'std_score', ['2', '4', '-3']),
+                    this.statPart(`A student, David, withdraws from the class and his test score is then deleted. It is given that his test score is ${mu} marks. Will there be any change in the standard score of John due to the deletion of the test score of David? Explain your answer.`,
+                        'yes', 'data_change', [])
+                ];
+            },
+
+            // Q95 style — score adjustment: new SD; z unchanged
+            setStat2: function() {
+                const s = [10, 8, 12][this.rand(0, 2)];
+                const p = [20, 25, 30, 40][this.rand(0, 3)];
+                const c = this.rand(2, 8);
+                const ns = s * (1 + p / 100);
+                return [
+                    this.statPart(`The standard deviation of the test scores obtained by a class of students in a Mathematics test is ${s} marks. All the students fail in the test, so the test score of each student is adjusted such that each score is increased by ${p}% and then extra ${c} marks are added.<br>Find the standard deviation of the test scores after the score adjustment.`,
+                        String(ns), 'data_change', [String(s), String(ns + c), String(this.r1(ns * 1.2))]),
+                    this.statPart(`Is there any change in the standard score of each student due to the score adjustment? Explain your answer.`,
+                        'no', 'std_score', [])
+                ];
+            },
+
+            // Q96 style — box plot + z of two students → mean; half-negative claim
+            setStat3: function() {
+                const mu = this.rand(50, 70);
+                const sg = [6, 8, 10][this.rand(0, 2)];
+                const xT = mu + sg / 2;
+                const xS = mu + 3 * sg;
+                const med = mu - 5;
+                const q1 = med - 6, q3 = med + 6;
+                const minV = med - 25;
+                return [
+                    this.statPart(`The box-and-whisker diagram below shows the distribution of the scores (in marks) of the students of a class in a test:<br>${this.boxPlotSvg(minV, q1, med, q3, xS, 'Score (mark)')}<br>Susan gets the highest score while Tom gets ${xT} marks in the test. The standard scores of Susan and Tom in the test are 3 and 0.5 respectively.<br>Find the mean of the distribution.`,
+                        String(mu), 'std_score', [String(xT), String(med), String(mu + 5)]),
+                    this.statPart(`Susan claims that the standard scores of at least half of the students in the test are negative. Do you agree? Explain your answer.`,
+                        'yes', 'five_number_summary', [])
+                ];
+            },
+
+            // Q97 style — two examinations; score from z; relative performance claim
+            setStat4: function() {
+                const m1 = this.rand(60, 80), s1 = [8, 10, 12, 14][this.rand(0, 3)];
+                const m2 = this.rand(45, 60), s2 = [8, 10, 12, 14][this.rand(0, 3)];
+                const xD = m1 - s1 / 2;
+                const xS = m2 - 3;
+                return [
+                    this.statPart(`The table below shows the means and the standard deviations of the scores of a large group of students in a Mathematics examination and a Science examination:<br><table class="stem-table"><tr><th class="lbl">Examination</th><th>Mean</th><th>Standard deviation</th></tr><tr><td class="lbl">Mathematics</td><td>${m1} marks</td><td>${s1} marks</td></tr><tr><td class="lbl">Science</td><td>${m2} marks</td><td>${s2} marks</td></tr></table><br>The standard score of David in the Mathematics examination is -0.5.<br>Find the score of David in the Mathematics examination.`,
+                        String(xD), 'std_score', [String(m1 - s1), String(m1), String(xD + 5)]),
+                    this.statPart(`Assume that the scores in each of the above examinations are normally distributed. David gets ${xS} marks in the Science examination. He claims that relative to other students, he performs better in the Science examination than in the Mathematics examination. Is the claim correct? Explain your answer.`,
+                        'yes', 'std_score', [])
+                ];
+            },
+
+            // Q98 style — z of two students → scores; range-bound claim
+            setStat5: function() {
+                const mu = this.rand(55, 70);
+                const sg = 15;
+                const xA = mu - 39;
+                const xM = mu + 21;
+                const bound = xM - xA - 1;
+                return [
+                    this.statPart(`In a test, the mean of the distribution of the scores of a class of students is ${mu} marks. The standard scores of Albert and Mary are -2.6 and 1.4 respectively. Albert gets ${xA} marks.<br>Find the score of Mary in the test.`,
+                        String(xM), 'std_score', [String(mu), String(xA + 15), String(xM + 15)]),
+                    this.statPart(`A student claims that the range of the distribution is at most ${bound} marks. Is the claim correct? Explain your answer.`,
+                        'no', 'std_score', [])
+                ];
+            },
+
+            // Q99 style — frequency table with unknown n, mean given → median / variance
+            setStat6: function() {
+                let f1, f2, f4, n, data = null, tries = 0;
+                do {
+                    f1 = this.rand(5, 10); f2 = this.rand(4, 8); f4 = this.rand(1, 4);
+                    n = 2 * (f1 + f2 + f4) - (f1 + 2 * f2 + 4 * f4);
+                    tries++;
+                } while ((n < 1 || n > 25) && tries < 200);
+                if (n < 1 || n > 25) { f1 = 8; f2 = 5; f4 = 1; n = 6; }
+                data = [];
+                const freqArr = [f1, f2, n, f4];
+                [1, 2, 3, 4].forEach((v, i) => { for (let k = 0; k < freqArr[i]; k++) data.push(v); });
+                const med = this.medOfArr(data);
+                const vr = this.varOf(data);
+                const tbl = this.freqHtml(['1', '2', '3', '4'], [String(f1), String(f2), 'n', String(f4)],
+                    ['Number of calculators owned', 'Number of students']);
+                return [
+                    this.statPart(`The table below shows the distribution of the numbers of calculators owned by a class of students.<br>${tbl}<br>The mean of the distribution is 2.<br>Find n.`,
+                        String(n), 'freq_table', [String(n + 1), String(n - 1), String(n + 2)]),
+                    this.statPart(`Find the median of the distribution.`,
+                        String(med), 'mean_median_mode', [String(med + 0.5), String(med - 0.5), String(med + 1)]),
+                    this.statPart(`Find the variance of the distribution.`,
+                        this.d2(vr), 'std_dev', [this.d2(vr + 0.1), this.d2(Math.abs(vr - 0.1)), this.d2(vr + 0.2)])
+                ];
+            }
+        };
+
+        
+                
+        
+        
+        // --- DIRECT (verbatim past-paper) QUESTION POOLS ---
+        // Every entry is a real DSE question (sourced from Data/): wording kept
+        // verbatim; diagram data restated as text. Answers verified against the
+        // official marking scheme (P1) / recomputed (P2).
+        const DIRECT = { 0: [], 1: [], 2: [], 3: [] };
+        const DIRECT_PER_GAME = { 0: 3, 1: 2, 2: 2, 3: 2 };
+
+        (function buildDirectPools() {
+            // helper: Paper 2 MC entry
+            const d0 = (src, qHtml, mc, others, law, ansStr) => ({
+                instruction: "Answer the statistics question:",
+                paper: 'Paper 2', src: src, qHtml: qHtml, text: qHtml,
+                answerStr: ansStr, mcAnswerStr: mc,
+                variables: [], firstStepLaw: law,
+                options: MathGen.shuffle([mc, ...others].map(o => `$ ${o} $`))
+            });
+            // helper: Paper 1 fill entry
+            const d1 = (src, qHtml, ans, law, dist, accept, mc) => ({
+                instruction: "Solve the statistics problem:",
+                paper: 'Paper 1', src: src, qHtml: qHtml, text: qHtml,
+                answerStr: ans, acceptList: accept || undefined,
+                mcAnswerStr: (ans === 'yes' || ans === 'no') ? `\\text{${ans === 'yes' ? 'Yes' : 'No'}}` : (mc || ans),
+                variables: [], firstStepLaw: law,
+                options: (ans === 'yes' || ans === 'no') ? MathGen.yesNoOpts(ans)
+                    : (mc ? MathGen.shuffle([mc, ...dist].map(o => `$ ${o} $`))
+                        : MathGen.numOpts(ans, dist))
+            });
+            // helper: Paper 1 part (for L3 sets)
+            const dp = (qHtml, ans, law, dist, accept) => ({
+                instruction: "Solve the statistics problem:",
+                qHtml: qHtml, text: qHtml,
+                answerStr: ans, acceptList: accept || undefined,
+                mcAnswerStr: (ans === 'yes' || ans === 'no') ? `\\text{${ans === 'yes' ? 'Yes' : 'No'}}` : String(ans),
+                variables: [], firstStepLaw: law,
+                options: (ans === 'yes' || ans === 'no') ? MathGen.yesNoOpts(ans) : MathGen.numOpts(ans, dist)
+            });
+
+            const IONLY = `\\text{I only}`, IIONLY = `\\text{II only}`,
+                IANDIII = `\\text{I and III only}`, IIANDIII = `\\text{II and III only}`,
+                ALL3 = `\\text{I, II and III}`;
+
+            // ══ Level 0 — Paper 2 MCQ (P2 Ch 14.1-14.5 & 14.6-14.7) ══
+            DIRECT[0] = [
+                d0('Paper 2 bank Q212',
+                    `{ <i>a</i> − 7 , <i>a</i> − 1 , <i>a</i> , <i>a</i> + 2 , <i>a</i> + 4 , <i>a</i> + 8 } and { <i>a</i> − 9 , <i>a</i> − 2 , <i>a</i> − 1 , <i>a</i> + 3 , <i>a</i> + 4 , <i>a</i> + 6 } are two groups of numbers. Which of the following is/are true?<br>I.&nbsp; The two groups of numbers have the same mean.<br>II.&nbsp; The two groups of numbers have the same median.<br>III.&nbsp; The two groups of numbers have the same range.`,
+                    IIANDIII, [IONLY, IIONLY, IANDIII], 'mean_median_mode', 'II and III only'),
+                d0('Paper 2 bank Q217',
+                    `The stem-and-leaf diagram below shows the distribution of the ages of the passengers in a bus.<br><table class="stem-table stemleaf"><tr><th>Stem (tens)</th><th>Leaf (units)</th></tr><tr><td>1</td><td><i>h</i> &nbsp; 4 &nbsp; 6</td></tr><tr><td>2</td><td>3 &nbsp; 3 &nbsp; 3 &nbsp; 4 &nbsp; 6 &nbsp; 7 &nbsp; 7</td></tr><tr><td>3</td><td>1 &nbsp; 2 &nbsp; 2 &nbsp; 2 &nbsp; 6 &nbsp; 8</td></tr><tr><td>4</td><td>0 &nbsp; <i>k</i></td></tr></table><br>If the range of the above distribution is at least 33, which of the following must be true?<br>I.&nbsp; 0 ≤ <i>h</i> ≤ 3<br>II.&nbsp; 3 ≤ <i>k</i> ≤ 9<br>III.&nbsp; 3 ≤ <i>k</i> − <i>h</i> ≤ 5`,
+                    IIONLY, [IONLY, IANDIII, IIANDIII], 'stem_leaf', 'II only'),
+                d0('Paper 2 bank Q220',
+                    `Consider the following positive integers:<br>2 &nbsp; 3 &nbsp; 4 &nbsp; 6 &nbsp; 7 &nbsp; 9 &nbsp; 10 &nbsp; <i>m</i> &nbsp; <i>n</i><br>Let <i>a</i>, <i>b</i> and <i>c</i> be the mode, the median and the range of the above positive integers respectively. If the mean of the above positive integers is 5, which of the following must be true?<br>I.&nbsp; <i>a</i> = 2<br>II.&nbsp; <i>b</i> = 4<br>III.&nbsp; <i>c</i> = 8`,
+                    IIONLY, [IONLY, IANDIII, IIANDIII], 'mean_median_mode', 'II only'),
+                d0('Paper 2 bank Q222',
+                    `Which of the following can be obtained from any box-and-whisker diagram?<br>I.&nbsp; Range<br>II.&nbsp; Standard deviation<br>III.&nbsp; Inter-quartile range`,
+                    IANDIII, [IONLY, IIONLY, IIANDIII], 'five_number_summary', 'I and III only'),
+                d0('Paper 2 bank Q223',
+                    `The table below shows the distribution of the numbers of merits obtained by some students in a year.<br><table class="stem-table"><tr><th>Number of merits obtained</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th></tr><tr><td>Number of students</td><td>32</td><td>36</td><td>28</td><td>18</td><td>2</td></tr></table><br>Which of the following is true?`,
+                    `\\text{The lower quartile of the distribution is }6`,
+                    [`\\text{The mode of the distribution is }36`, `\\text{The median of the distribution is }8`, `\\text{The upper quartile of the distribution is }10`],
+                    'five_number_summary', 'The lower quartile of the distribution is 6'),
+                d0('Paper 2 bank Q225',
+                    `Consider the following integers:<br>3 &nbsp; 3 &nbsp; 8 &nbsp; 8 &nbsp; 8 &nbsp; 10 &nbsp; 12 &nbsp; <i>m</i> &nbsp; <i>n</i><br>Let <i>x</i>, <i>y</i> and <i>z</i> be the median, the mean and the mode of the above integers respectively. If the range of the above integers is 9, which of the following must be true?<br>I.&nbsp; <i>x</i> = 8<br>II.&nbsp; <i>y</i> = 8<br>III.&nbsp; <i>z</i> = 8`,
+                    IONLY, [IIONLY, IANDIII, IIANDIII], 'mean_median_mode', 'I only'),
+                d0('Paper 2 bank Q226',
+                    `The stem-and-leaf diagram below shows the distribution of the weights (in kg) of a group of workers.<br><table class="stem-table stemleaf"><tr><th>Stem (tens)</th><th>Leaf (units)</th></tr><tr><td>5</td><td>3 &nbsp; 6 &nbsp; 7</td></tr><tr><td>6</td><td>1 &nbsp; 2 &nbsp; 2 &nbsp; 2 &nbsp; 6 &nbsp; 8</td></tr><tr><td>7</td><td>2 &nbsp; 3 &nbsp; 4 &nbsp; 5 &nbsp; 7 &nbsp; 7 &nbsp; 9 &nbsp; 9</td></tr><tr><td>8</td><td>3 &nbsp; 4 &nbsp; 5 &nbsp; 6 &nbsp; 6 &nbsp; 7 &nbsp; 8</td></tr></table><br>If a worker is randomly selected from the group, find the probability that the weight of the selected worker is not less than the lower quartile of the distribution.`,
+                    `\\frac{5}{6}`, [`\\frac{1}{4}`, `\\frac{1}{5}`, `\\frac{1}{6}`], 'stem_leaf', '5/6'),
+                d0('Paper 2 bank Q228',
+                    `Consider the following positive integers:<br>2 &nbsp; 5 &nbsp; 6 &nbsp; 6 &nbsp; <i>x</i> &nbsp; <i>x</i> &nbsp; <i>x</i> &nbsp; <i>y</i><br>If both the mean and the median of the above positive integers are 6, which of the following must be true?<br>I.&nbsp; The mode of the above positive integers is 6.<br>II.&nbsp; The least possible range of the above positive integers is 6.<br>III.&nbsp; The greatest possible variance of the above positive integers is 6.`,
+                    IIONLY, [IONLY, IANDIII, IIANDIII], 'mean_median_mode', 'II only'),
+                d0('Paper 2 bank Q234',
+                    `A set of numbers has a mode of 32, an inter-quartile range of 27 and a variance of 25. If 3 is added to each number of the set and each resulting number is then doubled to form a new set of numbers, find the mode, the inter-quartile range and the variance of the new set of numbers.`,
+                    `\\text{Mode }70\\text{, IQR }54\\text{, variance }100`,
+                    [`\\text{Mode }64\\text{, IQR }60\\text{, variance }50`, `\\text{Mode }70\\text{, IQR }60\\text{, variance }100`, `\\text{Mode }70\\text{, IQR }54\\text{, variance }50`],
+                    'data_change', '70, 54, 100'),
+                d0('Paper 2 bank Q235',
+                    `The mean, the variance and the inter-quartile range of a set of numbers are 40, 9 and 18 respectively. If 5 is added to each number of the set and each resulting number is then tripled to form a new set of numbers, find the mean, the variance and the inter-quartile range of the new set of numbers.`,
+                    `\\text{Mean }135\\text{, variance }81\\text{, IQR }54`,
+                    [`\\text{Mean }120\\text{, variance }27\\text{, IQR }69`, `\\text{Mean }120\\text{, variance }81\\text{, IQR }69`, `\\text{Mean }135\\text{, variance }27\\text{, IQR }54`],
+                    'data_change', '135, 81, 54'),
+                d0('Paper 2 bank Q236',
+                    `If the variance of the five numbers <i>x</i><sub>1</sub>, <i>x</i><sub>2</sub>, <i>x</i><sub>3</sub>, <i>x</i><sub>4</sub> and <i>x</i><sub>5</sub> is 13, then the variance of the five numbers 3<i>x</i><sub>1</sub> + 4, 3<i>x</i><sub>2</sub> + 4, 3<i>x</i><sub>3</sub> + 4, 3<i>x</i><sub>4</sub> + 4 and 3<i>x</i><sub>5</sub> + 4 is`,
+                    '117', ['39', '43', '121'], 'data_change', '117'),
+                d0('Paper 2 bank Q237',
+                    `In an examination, Peter gets 55 marks and his standard score is −3 while Mary gets 95 marks and her standard score is 2. Find the mean of the examination scores.`,
+                    '79', ['8', '64', '75'], 'std_score', '79'),
+                d0('Paper 2 bank Q238',
+                    `If the variance of the four numbers <i>a</i>, <i>b</i>, <i>c</i> and <i>d</i> is 9, then the variance of the four numbers 14 − <i>a</i>, 14 − <i>b</i>, 14 − <i>c</i> and 14 − <i>d</i> is`,
+                    '9', ['5', '23', '121'], 'data_change', '9'),
+                d0('Paper 2 bank Q240',
+                    `The variance of a set of numbers is 49. Each number of the set is multiplied by 4 and then 9 is added to each resulting number to form a new set of numbers. Find the variance of the new set of numbers.`,
+                    '784', ['196', '205', '793'], 'data_change', '784'),
+                d0('Paper 2 bank Q241',
+                    `The standard score of Tom in a Mathematics examination is –2. If the score of Tom in the Mathematics examination is 33 marks and the mean of the scores of the Mathematics examination is 45 marks, then the standard deviation of the scores of the Mathematics examination is`,
+                    '6', ['3', '12', '36'], 'std_score', '6'),
+                d0('Paper 2 bank Q242',
+                    `Let <i>m</i><sub>1</sub>, <i>r</i><sub>1</sub> and <i>v</i><sub>1</sub> be the mode, the inter-quartile range and the variance of a group of numbers { <i>x</i><sub>1</sub>, <i>x</i><sub>2</sub>, <i>x</i><sub>3</sub>, <i>x</i><sub>4</sub>, <i>x</i><sub>5</sub>, <i>x</i><sub>6</sub>, <i>x</i><sub>7</sub> } respectively while <i>m</i><sub>2</sub>, <i>r</i><sub>2</sub> and <i>v</i><sub>2</sub> be the mode, the inter-quartile range and the variance of the group of numbers { 8<i>x</i><sub>1</sub>, 8<i>x</i><sub>2</sub>, 8<i>x</i><sub>3</sub>, 8<i>x</i><sub>4</sub>, 8<i>x</i><sub>5</sub>, 8<i>x</i><sub>6</sub>, 8<i>x</i><sub>7</sub> } respectively. Which of the following must be true?<br>I.&nbsp; <i>m</i><sub>2</sub> = 8<i>m</i><sub>1</sub><br>II.&nbsp; <i>r</i><sub>2</sub> = 8<i>r</i><sub>1</sub><br>III.&nbsp; <i>v</i><sub>2</sub> = 8<i>v</i><sub>1</sub>`,
+                    `\\text{I and II only}`, [IONLY, IANDIII, IIANDIII], 'data_change', 'I and II only'),
+                d0('Paper 2 bank Q243',
+                    `In a test, the mean of the test scores is 68 marks. Peter gets 46 marks in the test and his standard score is −2.2. If Susan gets 52 marks in the test, then her standard score is`,
+                    '-1.6', ['-2.5', '-0.6', '1.6'], 'std_score', '-1.6'),
+                d0('Paper 2 bank Q244',
+                    `In an examination, the standard deviation of the examination scores is 8 marks. The examination score of Mary is 69 marks and her standard score is 0.5. If the standard score of John in the examination is −1.5, then his examination score is`,
+                    '53', ['45', '65', '77'], 'std_score', '53'),
+                d0('Paper 2 bank Q245',
+                    `The mean, the range and the variance of a set of numbers are <i>m</i>, <i>r</i> and <i>v</i> respectively. Each number of the set is multiplied by 6 and then 5 is added to each resulting number to form a new set of numbers. Which of the following is/are true?<br>I.&nbsp; The mean of the new set of numbers is 6<i>m</i> + 5.<br>II.&nbsp; The range of the new set of numbers is 6<i>r</i> + 5.<br>III.&nbsp; The variance of the new set of numbers is 6<i>v</i> + 5.`,
+                    IONLY, [IIONLY, IANDIII, IIANDIII], 'data_change', 'I only'),
+                d0('Paper 2 bank Q246',
+                    `In a test, the difference of the test scores and the difference of the standard scores of two students are 30 marks and 6 respectively. In the test, the standard deviation of the test scores is`,
+                    '5', ['24', '25', '36'], 'std_score', '5'),
+                d0('Paper 2 bank Q247',
+                    `The variance of the six numbers 20<i>a</i> + 3, 20<i>a</i> + 5, 20<i>a</i> + 9, 20<i>a</i> + 11, 20<i>a</i> + 15 and 20<i>a</i> + 17 is`,
+                    '25', ['5', '10', '20a + 25'], 'data_change', '25'),
+                d0('Paper 2 bank Q248',
+                    `In an examination, the mean of the examination scores is 45 marks. A boy gets 25 marks in the examination and his standard score is –5. If the standard score of a girl in the examination is 7, then her examination score is`,
+                    '73', ['4', '53', '80'], 'std_score', '73'),
+                d0('Paper 2 bank Q250',
+                    `In a test, the median of the test scores of a class of students is 30 marks. All the students fail in the test, so the test score of each student is adjusted such that each score is increased by 50% and then extra 8 marks are added. Let <i>x</i> marks be the median of the test scores of the class of students after the score adjustment. In the test, the standard score of a student before the score adjustment is –2. Denote the standard score of this student after the score adjustment by <i>z</i>. Find <i>x</i> and <i>z</i>.`,
+                    `\\text{x = 53 and z = -2}`,
+                    [`\\text{x = 45 and z = -2}`, `\\text{x = 45 and z = -1}`, `\\text{x = 53 and z = -1}`],
+                    'data_change', 'x = 53 and z = -2'),
+                d0('Paper 2 bank Q252',
+                    `The table below shows the scores (in marks) and the corresponding standard scores of three students in an examination.<br><table class="stem-table"><tr><th>Score (marks)</th><th>46</th><th><i>x</i></th><th>86</th></tr><tr><td>Standard score</td><td>−3</td><td>1</td><td>2</td></tr></table><br>Find <i>x</i>.`,
+                    '78', ['64', '66', '70'], 'std_score', '78'),
+                d0('Paper 2 bank Q255',
+                    `If the variance of the seven numbers <i>x</i><sub>1</sub>, <i>x</i><sub>2</sub>, <i>x</i><sub>3</sub>, <i>x</i><sub>4</sub>, <i>x</i><sub>5</sub>, <i>x</i><sub>6</sub> and <i>x</i><sub>7</sub> is 16, then the standard deviation of the seven numbers 9<i>x</i><sub>1</sub> − 5, 9<i>x</i><sub>2</sub> − 5, 9<i>x</i><sub>3</sub> − 5, 9<i>x</i><sub>4</sub> − 5, 9<i>x</i><sub>5</sub> − 5, 9<i>x</i><sub>6</sub> − 5 and 9<i>x</i><sub>7</sub> − 5 is`,
+                    '36', ['31', '139', '144'], 'data_change', '36'),
+                d0('Paper 2 bank Q256',
+                    `The standard scores of a boy and a girl in a Mathematics test are –2 and <i>z</i> respectively. The standard deviation of the scores of the Mathematics test is 2 marks. If the difference of the test score of the boy and the test score of the girl is 6 marks, find <i>z</i>.`,
+                    `-5\\text{ or }1`, [`-5\\text{ or }3`, `-3\\text{ or }1`, `-3\\text{ or }3`], 'std_score', '-5 or 1')
+            ];
+
+            // ══ Level 1 — S3 basics (J16 Statistics Q289/Q290; Sample-P1-Q14 excluded) ══
+            const SL289 = `<table class="stem-table stemleaf"><tr><th>Stem (tens)</th><th>Leaf (units)</th></tr><tr><td>1</td><td>0 &nbsp; 0 &nbsp; 1 &nbsp; 1 &nbsp; 2 &nbsp; 3 &nbsp; 4 &nbsp; 5 &nbsp; 5 &nbsp; 6 &nbsp; 6 &nbsp; 7 &nbsp; 7</td></tr><tr><td>2</td><td>0 &nbsp; 0 &nbsp; 0 &nbsp; 5 &nbsp; 8</td></tr><tr><td>3</td><td>4 &nbsp; 6</td></tr></table>`;
+            DIRECT[1] = [
+                d1('HKDSE 12-P1-Q10(a)', `Tom conducts a survey on the numbers of hours spent on doing homework in a week by secondary students. Questionnaires are sent out and twenty of them are returned. The stem-and-leaf diagram below shows the numbers of hours recorded in the twenty questionnaires:<br>${SL289}<br>(a) Find the median of the numbers of hours recorded in the twenty questionnaires.`,
+                    '16', 'mean_median_mode', ['18', '20', '14']),
+                d1('HKDSE 12-P1-Q10(a)', `Tom conducts a survey on the numbers of hours spent on doing homework in a week by secondary students. Questionnaires are sent out and twenty of them are returned. The stem-and-leaf diagram below shows the numbers of hours recorded in the twenty questionnaires:<br>${SL289}<br>(a) Find the mean of the numbers of hours recorded in the twenty questionnaires.`,
+                    '18', 'mean_median_mode', ['16', '20', '17']),
+                d1('HKDSE 12-P1-Q10(b)(i)', `Tom conducts a survey on the numbers of hours spent on doing homework in a week by secondary students. Questionnaires are sent out and twenty of them are returned. The stem-and-leaf diagram below shows the numbers of hours recorded in the twenty questionnaires:<br>${SL289}<br>Tom receives four more questionnaires. He finds that the mean of the numbers of hours recorded in these four questionnaires is 18. It is found that the numbers of hours recorded in two of these four questionnaires are 19 and 20.<br>(i) Write down the mean of the numbers of hours recorded in the twenty-four questionnaires.`,
+                    '18', 'mean_median_mode', ['17', '19', '20']),
+                d1('HKDSE 12-P1-Q10(b)(ii)', `Tom conducts a survey on the numbers of hours spent on doing homework in a week by secondary students. Questionnaires are sent out and twenty of them are returned. The stem-and-leaf diagram below shows the numbers of hours recorded in the twenty questionnaires:<br>${SL289}<br>Tom receives four more questionnaires. He finds that the mean of the numbers of hours recorded in these four questionnaires is 18. It is found that the numbers of hours recorded in two of these four questionnaires are 19 and 20.<br>(ii) Is it possible that the median of the numbers of hours recorded in the twenty-four questionnaires is the same as the median found in (a)? Explain your answer.`,
+                    'no', 'mean_median_mode', []),
+                d1('HKDSE 18-P1-Q11(a)(i)', `The following table shows the distribution of the numbers of children of some families:<br><table class="stem-table"><tr><th>Number of children</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th></tr><tr><td>Number of families</td><td><i>k</i></td><td>2</td><td>9</td><td>6</td><td>7</td></tr></table><br>It is given that <i>k</i> is a positive integer. If the mode of the distribution is 2, write down the least possible value of <i>k</i>.`,
+                    '1', 'freq_table', ['2', '3', '8']),
+                d1('HKDSE 18-P1-Q11(a)(ii)', `The following table shows the distribution of the numbers of children of some families:<br><table class="stem-table"><tr><th>Number of children</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th></tr><tr><td>Number of families</td><td><i>k</i></td><td>2</td><td>9</td><td>6</td><td>7</td></tr></table><br>It is given that <i>k</i> is a positive integer. If the mode of the distribution is 2, write down the greatest possible value of <i>k</i>.`,
+                    '8', 'freq_table', ['9', '10', '19']),
+                d1('HKDSE 18-P1-Q11(b)(i)', `The following table shows the distribution of the numbers of children of some families:<br><table class="stem-table"><tr><th>Number of children</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th></tr><tr><td>Number of families</td><td><i>k</i></td><td>2</td><td>9</td><td>6</td><td>7</td></tr></table><br>It is given that <i>k</i> is a positive integer. If the median of the distribution is 2, write down the least possible value of <i>k</i>.`,
+                    '3', 'freq_table', ['1', '2', '4']),
+                d1('HKDSE 18-P1-Q11(b)(ii)', `The following table shows the distribution of the numbers of children of some families:<br><table class="stem-table"><tr><th>Number of children</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th></tr><tr><td>Number of families</td><td><i>k</i></td><td>2</td><td>9</td><td>6</td><td>7</td></tr></table><br>It is given that <i>k</i> is a positive integer. If the median of the distribution is 2, write down the greatest possible value of <i>k</i>.`,
+                    '19', 'freq_table', ['18', '20', '25']),
+                d1('HKDSE 18-P1-Q11(c)', `The following table shows the distribution of the numbers of children of some families:<br><table class="stem-table"><tr><th>Number of children</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th></tr><tr><td>Number of families</td><td><i>k</i></td><td>2</td><td>9</td><td>6</td><td>7</td></tr></table><br>It is given that <i>k</i> is a positive integer. If the mean of the distribution is 2, find the value of <i>k</i>.`,
+                    '9', 'freq_table', ['8', '10', '11'])
+            ];
+
+            // ══ Level 2 — measures of dispersion (P1 Ch 14.1-14.5) ══
+            DIRECT[2] = [
+                d1('HKDSE Maths Practice Paper-P1-Q9(a)', `The following table shows the distribution of the numbers of online hours spent by a group of children on a certain day.<br><table class="stem-table"><tr><th>Number of online hours</th><th>2</th><th>3</th><th>4</th><th>5</th></tr><tr><td>Number of children</td><td><i>r</i></td><td>8</td><td>12</td><td><i>s</i></td></tr></table><br>It is given that <i>r</i> and <i>s</i> are positive numbers. Find the least possible value of the inter-quartile range of the distribution.`,
+                    '0', 'five_number_summary', ['1', '2', '3']),
+                d1('HKDSE Maths Practice Paper-P1-Q9(a)', `The following table shows the distribution of the numbers of online hours spent by a group of children on a certain day.<br><table class="stem-table"><tr><th>Number of online hours</th><th>2</th><th>3</th><th>4</th><th>5</th></tr><tr><td>Number of children</td><td><i>r</i></td><td>8</td><td>12</td><td><i>s</i></td></tr></table><br>It is given that <i>r</i> and <i>s</i> are positive numbers. Find the greatest possible value of the inter-quartile range of the distribution.`,
+                    '3', 'five_number_summary', ['2', '4', '5']),
+                d1('HKDSE Maths Practice Paper-P1-Q9(b)', `The following table shows the distribution of the numbers of online hours spent by a group of children on a certain day.<br><table class="stem-table"><tr><th>Number of online hours</th><th>2</th><th>3</th><th>4</th><th>5</th></tr><tr><td>Number of children</td><td><i>r</i></td><td>8</td><td>12</td><td><i>s</i></td></tr></table><br>If <i>r</i> = 9 and the median of the distribution is 3, how many possible values of <i>s</i> are there?`,
+                    '4', 'freq_table', ['3', '5', '6']),
+                d1('HKDSE 13-P1-Q10(a)', `The ages of the members of Committee A are shown as follows:<br>17 &nbsp; 18 &nbsp; 21 &nbsp; 21 &nbsp; 22 &nbsp; 22 &nbsp; 23 &nbsp; 23 &nbsp; 23 &nbsp; 31 &nbsp; 31 &nbsp; 34 &nbsp; 35 &nbsp; 36 &nbsp; 47 &nbsp; 47 &nbsp; 58 &nbsp; 68 &nbsp; 69 &nbsp; 69<br>(a) Write down the median of the ages of the members of Committee A.`,
+                    '31', 'mean_median_mode', ['23', '34', '36']),
+                d1('HKDSE 13-P1-Q10(a)', `The ages of the members of Committee A are shown as follows:<br>17 &nbsp; 18 &nbsp; 21 &nbsp; 21 &nbsp; 22 &nbsp; 22 &nbsp; 23 &nbsp; 23 &nbsp; 23 &nbsp; 31 &nbsp; 31 &nbsp; 34 &nbsp; 35 &nbsp; 36 &nbsp; 47 &nbsp; 47 &nbsp; 58 &nbsp; 68 &nbsp; 69 &nbsp; 69<br>(a) Write down the mode of the ages of the members of Committee A.`,
+                    '23', 'mean_median_mode', ['31', '22', '34']),
+                d1('HKDSE 14-P1-Q4', `The table below shows the distribution of the numbers of calculators owned by some students.<br><table class="stem-table"><tr><th>Number of calculators</th><th>0</th><th>1</th><th>2</th><th>3</th></tr><tr><td>Number of students</td><td>7</td><td>14</td><td>15</td><td>4</td></tr></table><br>Find the median of the above distribution.`,
+                    '1', 'mean_median_mode', ['2', '3', '1.5']),
+                d1('HKDSE 14-P1-Q4', `The table below shows the distribution of the numbers of calculators owned by some students.<br><table class="stem-table"><tr><th>Number of calculators</th><th>0</th><th>1</th><th>2</th><th>3</th></tr><tr><td>Number of students</td><td>7</td><td>14</td><td>15</td><td>4</td></tr></table><br>Find the mode of the above distribution.`,
+                    '2', 'mean_median_mode', ['1', '3', '0']),
+                d1('HKDSE 14-P1-Q4', `The table below shows the distribution of the numbers of calculators owned by some students.<br><table class="stem-table"><tr><th>Number of calculators</th><th>0</th><th>1</th><th>2</th><th>3</th></tr><tr><td>Number of students</td><td>7</td><td>14</td><td>15</td><td>4</td></tr></table><br>Find the standard deviation of the above distribution.`,
+                    '0.889', 'std_dev', ['0.9', '1.2', '0.8']),
+                d1('HKDSE 15-P1-Q12(a)', `The stem-and-leaf diagram below shows the distribution of the weights (in kg) of the students in a football club.<br><table class="stem-table stemleaf"><tr><th>Stem (tens)</th><th>Leaf (units)</th></tr><tr><td>4</td><td>0 &nbsp; 2 &nbsp; 3 &nbsp; 3 &nbsp; 3 &nbsp; 3 &nbsp; 9</td></tr><tr><td>5</td><td>1 &nbsp; 1 &nbsp; 2 &nbsp; 2 &nbsp; 3 &nbsp; 7 &nbsp; 9</td></tr><tr><td>6</td><td>3 &nbsp; 5 &nbsp; 8 &nbsp; 9</td></tr><tr><td>7</td><td>8 &nbsp; 9</td></tr></table><br>(a) Find the mean of the above distribution.`,
+                    '55', 'mean_median_mode', ['52', '56', '54']),
+                d1('HKDSE 15-P1-Q12(a)', `The stem-and-leaf diagram below shows the distribution of the weights (in kg) of the students in a football club.<br><table class="stem-table stemleaf"><tr><th>Stem (tens)</th><th>Leaf (units)</th></tr><tr><td>4</td><td>0 &nbsp; 2 &nbsp; 3 &nbsp; 3 &nbsp; 3 &nbsp; 3 &nbsp; 9</td></tr><tr><td>5</td><td>1 &nbsp; 1 &nbsp; 2 &nbsp; 2 &nbsp; 3 &nbsp; 7 &nbsp; 9</td></tr><tr><td>6</td><td>3 &nbsp; 5 &nbsp; 8 &nbsp; 9</td></tr><tr><td>7</td><td>8 &nbsp; 9</td></tr></table><br>(a) Find the median of the above distribution.`,
+                    '52', 'mean_median_mode', ['51', '53', '55']),
+                d1('HKDSE 15-P1-Q12(a)', `The stem-and-leaf diagram below shows the distribution of the weights (in kg) of the students in a football club.<br><table class="stem-table stemleaf"><tr><th>Stem (tens)</th><th>Leaf (units)</th></tr><tr><td>4</td><td>0 &nbsp; 2 &nbsp; 3 &nbsp; 3 &nbsp; 3 &nbsp; 3 &nbsp; 9</td></tr><tr><td>5</td><td>1 &nbsp; 1 &nbsp; 2 &nbsp; 2 &nbsp; 3 &nbsp; 7 &nbsp; 9</td></tr><tr><td>6</td><td>3 &nbsp; 5 &nbsp; 8 &nbsp; 9</td></tr><tr><td>7</td><td>8 &nbsp; 9</td></tr></table><br>(a) Find the range of the above distribution.`,
+                    '39', 'five_number_summary', ['40', '38', '37']),
+                d1('HKDSE 15-P1-Q12(b)', `The stem-and-leaf diagram below shows the distribution of the weights (in kg) of the students in a football club.<br><table class="stem-table stemleaf"><tr><th>Stem (tens)</th><th>Leaf (units)</th></tr><tr><td>4</td><td>0 &nbsp; 2 &nbsp; 3 &nbsp; 3 &nbsp; 3 &nbsp; 3 &nbsp; 9</td></tr><tr><td>5</td><td>1 &nbsp; 1 &nbsp; 2 &nbsp; 2 &nbsp; 3 &nbsp; 7 &nbsp; 9</td></tr><tr><td>6</td><td>3 &nbsp; 5 &nbsp; 8 &nbsp; 9</td></tr><tr><td>7</td><td>8 &nbsp; 9</td></tr></table><br>(b) Two more students now join the club. It is found that both the mean and the range of the distribution of the weights are increased by 1 kg. Find the weight of each of these two students.`,
+                    '52 and 80', 'data_change', ['52 and 79', '53 and 80', '52 and 81']),
+                d1('HKDSE 17-P1-Q11(a)', `The stem-and-leaf diagram below shows the distribution of the hourly wages (in dollars) of the workers in a group.<br><table class="stem-table stemleaf"><tr><th>Stem (tens)</th><th>Leaf (units)</th></tr><tr><td>6</td><td>1 &nbsp; 1 &nbsp; 1 &nbsp; 3 &nbsp; 4 &nbsp; 6 &nbsp; 8 &nbsp; 9 &nbsp; 9</td></tr><tr><td>7</td><td><i>a</i> &nbsp; 7 &nbsp; 7 &nbsp; 8</td></tr><tr><td>8</td><td>1 &nbsp; <i>b</i></td></tr></table><br>It is given that the mean and the range of the above distribution are \\$70 and \\$22 respectively.<br><br>Find the median of the above distribution.`,
+                    '69', 'stem_leaf', ['70', '68', '71']),
+                d1('HKDSE 17-P1-Q11(a)', `The stem-and-leaf diagram below shows the distribution of the hourly wages (in dollars) of the workers in a group.<br><table class="stem-table stemleaf"><tr><th>Stem (tens)</th><th>Leaf (units)</th></tr><tr><td>6</td><td>1 &nbsp; 1 &nbsp; 1 &nbsp; 3 &nbsp; 4 &nbsp; 6 &nbsp; 8 &nbsp; 9 &nbsp; 9</td></tr><tr><td>7</td><td><i>a</i> &nbsp; 7 &nbsp; 7 &nbsp; 8</td></tr><tr><td>8</td><td>1 &nbsp; <i>b</i></td></tr></table><br>It is given that the mean and the range of the above distribution are \\$70 and \\$22 respectively.<br><br>Find the standard deviation of the above distribution.`,
+                    '7.33', 'std_dev', ['7.4', '8', '6.9']),
+                d1('HKDSE 19-P1-Q12(a)', `The stem-and leaf diagram below shows the distribution of the results (in seconds) of some boys in a 400 m race.<br><table class="stem-table stemleaf"><tr><th>Stem (tens)</th><th>Leaf (units)</th></tr><tr><td>5</td><td><i>a</i></td></tr><tr><td>6</td><td>0 &nbsp; 0 &nbsp; 3 &nbsp; <i>c</i> &nbsp; <i>c</i> &nbsp; 8 &nbsp; 9 &nbsp; 9 &nbsp; 9</td></tr><tr><td>7</td><td>0 &nbsp; 1 &nbsp; 1 &nbsp; 1 &nbsp; 2 &nbsp; 2 &nbsp; 5 &nbsp; 6 &nbsp; 9</td></tr><tr><td>8</td><td><i>b</i></td></tr></table><br>It is given that the inter-quartile range of the distribution is 8 seconds.<br>(a) Find <i>c</i>.`,
+                    '4', 'stem_leaf', ['3', '5', '6']),
+                d1('HKDSE 20-P1-Q9(a)', `The table below shows the distribution of the numbers of subjects taken by a class of students.<br><table class="stem-table"><tr><th>Number of subjects taken</th><th>4</th><th>5</th><th>6</th><th>7</th></tr><tr><td>Number of students</td><td>8</td><td>12</td><td>16</td><td>4</td></tr></table><br>(a) Write down the mean of the above distribution.`,
+                    '5.4', 'mean_median_mode', ['5.5', '5.6', '5']),
+                d1('HKDSE 20-P1-Q9(a)', `The table below shows the distribution of the numbers of subjects taken by a class of students.<br><table class="stem-table"><tr><th>Number of subjects taken</th><th>4</th><th>5</th><th>6</th><th>7</th></tr><tr><td>Number of students</td><td>8</td><td>12</td><td>16</td><td>4</td></tr></table><br>(a) Write down the median of the above distribution.`,
+                    '5.5', 'mean_median_mode', ['5.4', '6', '5']),
+                d1('HKDSE 20-P1-Q9(a)', `The table below shows the distribution of the numbers of subjects taken by a class of students.<br><table class="stem-table"><tr><th>Number of subjects taken</th><th>4</th><th>5</th><th>6</th><th>7</th></tr><tr><td>Number of students</td><td>8</td><td>12</td><td>16</td><td>4</td></tr></table><br>(a) Write down the standard deviation of the above distribution.`,
+                    '0.917', 'std_dev', ['0.9', '1', '0.8']),
+                d1('HKDSE 20-P1-Q9(b)', `The table below shows the distribution of the numbers of subjects taken by a class of students.<br><table class="stem-table"><tr><th>Number of subjects taken</th><th>4</th><th>5</th><th>6</th><th>7</th></tr><tr><td>Number of students</td><td>8</td><td>12</td><td>16</td><td>4</td></tr></table><br>A new student now joins the class. The number of subjects taken by the new student is 5. Find the change in the median of the distribution due to the joining of this student.`,
+                    '0.5', 'mean_median_mode', ['1', '0', '0.6']),
+                d1('HKDSE 20-P1-Q11(a)', `The stem-and-leaf diagram below shows the distribution of the weights (in grams) of the letters in a bag.<br><table class="stem-table stemleaf"><tr><th>Stem (tens)</th><th>Leaf (units)</th></tr><tr><td>1</td><td>1 &nbsp; 2 &nbsp; 2 &nbsp; 3</td></tr><tr><td>2</td><td>3 &nbsp; 3 &nbsp; 4 &nbsp; 5 &nbsp; 6 &nbsp; 9 &nbsp; 9</td></tr><tr><td>3</td><td>1 &nbsp; 6 &nbsp; 7 &nbsp; 8 &nbsp; 8 &nbsp; 8</td></tr><tr><td>4</td><td>2</td></tr><tr><td>5</td><td>0 &nbsp; <i>w</i></td></tr></table><br>It is given that the range of the above distribution is the triple of its inter-quartile range.<br>(a) Find <i>w</i>.`,
+                    '6', 'stem_leaf', ['5', '7', '8']),
+                d1('HKDSE 20-P1-Q11(b)', `The stem-and-leaf diagram below shows the distribution of the weights (in grams) of the letters in a bag.<br><table class="stem-table stemleaf"><tr><th>Stem (tens)</th><th>Leaf (units)</th></tr><tr><td>1</td><td>1 &nbsp; 2 &nbsp; 2 &nbsp; 3</td></tr><tr><td>2</td><td>3 &nbsp; 3 &nbsp; 4 &nbsp; 5 &nbsp; 6 &nbsp; 9 &nbsp; 9</td></tr><tr><td>3</td><td>1 &nbsp; 6 &nbsp; 7 &nbsp; 8 &nbsp; 8 &nbsp; 8</td></tr><tr><td>4</td><td>2</td></tr><tr><td>5</td><td>0 &nbsp; <i>w</i></td></tr></table><br>If a letter is randomly chosen from the bag, find the probability that the weight of the chosen letter is not less than the mode of the distribution.`,
+                    '3/10', 'stem_leaf', [`\\frac{1}{5}`, `\\frac{2}{5}`, `\\frac{3}{5}`], undefined, `\\frac{3}{10}`),
+                d1('HKDSE 25-P1-Q9(a)', `The table below shows the distribution of the numbers of pens owned by some students.<br><table class="stem-table"><tr><th>Number of pens</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th></tr><tr><td>Number of students</td><td>9</td><td>13</td><td>2</td><td><i>s</i></td><td>11</td></tr></table><br>The median of the distribution is 7. Find the least possible value of <i>s</i>.`,
+                    '10', 'freq_table', ['9', '11', '12']),
+                d1('HKDSE 25-P1-Q9(b)', `The table below shows the distribution of the numbers of pens owned by some students.<br><table class="stem-table"><tr><th>Number of pens</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th></tr><tr><td>Number of students</td><td>9</td><td>13</td><td>2</td><td><i>s</i></td><td>11</td></tr></table><br>The median of the distribution is 7. Write down the greatest possible value of <i>s</i>.`,
+                    '12', 'freq_table', ['11', '13', '10']),
+                d1('HKDSE 25-P1-Q9(c)', `The table below shows the distribution of the numbers of pens owned by some students.<br><table class="stem-table"><tr><th>Number of pens</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th></tr><tr><td>Number of students</td><td>9</td><td>13</td><td>2</td><td><i>s</i></td><td>11</td></tr></table><br>The median of the distribution is 7. Find the greatest possible standard deviation of the distribution.`,
+                    '1.51', 'std_dev', ['1.5', '1.6', '1.4'])
+            ];
+
+            // ══ Level 3 — standard score & data change (P1 Ch 14.6-14.7 Section B) ══
+            DIRECT[3] = [
+                [
+                    dp(`The mean score of a class of students in a test is 48 marks. The scores of Mary and John in the test are 36 marks and 66 marks respectively. The standard score of Mary in the test is –2.<br>Find the standard score of John in the test.`,
+                        '3', 'std_score', ['2', '4', '-3']),
+                    dp(`A student, David, withdraws from the class and his test score is then deleted. It is given that his test score is 48 marks. Will there be any change in the standard score of John due to the deletion of the test score of David? Explain your answer.`,
+                        'yes', 'data_change', [])
+                ],
+                [
+                    dp(`The standard deviation of the test scores obtained by a class of students in a Mathematics test is 10 marks. All the students fail in the test, so the test score of each student is adjusted such that each score is increased by 20% and then extra 5 marks are added.<br>Find the standard deviation of the test scores after the score adjustment.`,
+                        '12', 'data_change', ['10', '17', '14.4']),
+                    dp(`Is there any change in the standard score of each student due to the score adjustment? Explain your answer.`,
+                        'no', 'std_score', [])
+                ],
+                [
+                    dp(`The table below shows the means and the standard deviations of the scores of a large group of students in a Mathematics examination and a Science examination:<br><table class="stem-table"><tr><th class="lbl">Examination</th><th>Mean</th><th>Standard deviation</th></tr><tr><td class="lbl">Mathematics</td><td>66 marks</td><td>12 marks</td></tr><tr><td class="lbl">Science</td><td>52 marks</td><td>10 marks</td></tr></table><br>The standard score of David in the Mathematics examination is –0.5.<br>Find the score of David in the Mathematics examination.`,
+                        '60', 'std_score', ['54', '66', '72']),
+                    dp(`Assume that the scores in each of the above examinations are normally distributed. David gets 49 marks in the Science examination. He claims that relative to other students, he performs better in the Science examination than in the Mathematics examination. Is the claim correct? Explain your answer.`,
+                        'yes', 'std_score', [])
+                ],
+                [
+                    dp(`In a test, the mean of the distribution of the scores of a class of students is 61 marks. The standard scores of Albert and Mary are –2.6 and 1.4 respectively. Albert gets 22 marks. A student claims that the range of the distribution is at most 59 marks. Is the claim correct? Explain your answer.`,
+                        'no', 'std_score', [])
+                ],
+                [
+                    dp(`The table below shows the distribution of the numbers of calculators owned by a class of students.<br><table class="stem-table"><tr><th>Number of calculators owned</th><th>1</th><th>2</th><th>3</th><th>4</th></tr><tr><td>Number of students</td><td>8</td><td>5</td><td><i>n</i></td><td>1</td></tr></table><br>The mean of the distribution is 2.<br>Find <i>n</i>.`,
+                        '6', 'freq_table', ['7', '5', '8']),
+                    dp(`Find the median of the distribution.`,
+                        '2', 'mean_median_mode', ['1', '3', '2.5']),
+                    dp(`Find the variance of the distribution.`,
+                        '0.9', 'std_dev', ['0.8', '1', '1.2'])
+                ]
+            ];
+            [['HKDSE Maths Practice Paper-P1-Q15', 0], ['HKDSE 12-P1-Q15', 1],
+             ['HKDSE 15-P1-Q15', 2], ['HKDSE 16-P1-Q16', 3], ['HKDSE 23-P1-Q11', 4]]
+                .forEach(([s, i]) => { DIRECT[3][i].forEach(p => { p.src = s; }); });
+        })();
+
+        // --- STATISTICS ANSWER CHECKING ---
+
+        // fraction "5/6" → 0.8333..., null if not a fraction
+        function fracOf(s) {
+            const m = String(s).match(/^(-?\d+(?:\.\d+)?)\s*\/\s*(-?\d+(?:\.\d+)?)$/);
+            return m ? parseFloat(m[1]) / parseFloat(m[2]) : null;
+        }
+        // first number found in the string
+        function numOf(s) {
+            const m = String(s).replace(/[^\d.\-]/g, ' ').match(/-?\d+(?:\.\d+)?/);
+            return m ? parseFloat(m[0]) : NaN;
+        }
+        function normAns(s) {
+            return String(s).toLowerCase().replace(/−/g, '-')
+                .replace(/\b(dollars|dollar|marks|mark|seconds|second|kg|cm|hours|hour|thousand dollars?|minutes|minute)\b/g, '')
+                .replace(/[\s$,%()*]/g, '')
+                .replace(/\band\b/g, '');
+        }
+        function checkFillAnswer(cleanInput, q) {
+            const accept = (q.acceptList && q.acceptList.length) ? q.acceptList : [q.answerStr];
+            const inp = String(cleanInput);
+            for (const a of accept) {
+                if (normAns(a) === normAns(inp)) return true;
+                const fa = fracOf(a) !== null ? fracOf(a) : numOf(a);
+                const fi = fracOf(inp) !== null ? fracOf(inp) : numOf(inp);
+                if (!isNaN(fa) && !isNaN(fi)) {
+                    if (Math.abs(fa - fi) < 1e-9) return true;                                  // exact
+                    if (Number(fa.toPrecision(3)) === Number(fi.toPrecision(3))) return true;   // correct to 3 sig. fig.
+                }
+            }
+            const fa2 = fracOf(q.answerStr);
+            const fi2 = numOf(inp);
+            if (fa2 !== null && !isNaN(fi2) && Math.abs(fa2 - fi2) < 1e-3) return true;
+            return false;
+        }
+
+        // --- VARIABLE ITALICS (paper-style; MathJax segments untouched) ---
+        // 'a' is deliberately excluded: it is usually the English article ("In a pie
+        // chart"). Questions that use 'a' as a variable wrap it manually (<i>a</i>).
+        const MATHVAR_SET = new Set('bcdhk mnprstuvwxyz'.split('').filter(c => c !== ' '));
+        function styleVars(html) {
+            return String(html).split(/(<[^>]+>|\$[^$]*\$)/).map(seg => {
+                if (seg.charAt(0) === '<' || seg.charAt(0) === '$') return seg;
+                return seg.replace(/(^|[^A-Za-z])([A-Za-z])(?=[^A-Za-z]|$)/g,
+                    (m, pre, ch) => pre + (MATHVAR_SET.has(ch) ? '<i class="mathvar">' + ch + '</i>' : ch));
+            }).join('');
+        }
+
+        // --- COLORFUL ANSWER ANIMATIONS (confetti / flash / bounce) ---
+        function celebrate(big) {
+            if (typeof confetti === 'undefined') return;
+            confetti({
+                particleCount: big ? 170 : 70,
+                spread: big ? 100 : 60,
+                startVelocity: big ? 40 : 25,
+                origin: { y: 0.6 },
+                colors: ['#fbbf24', '#f472b6', '#818cf8', '#34d399', '#22d3ee', '#f87171']
+            });
+        }
+        function animateCorrect() {
+            celebrate(false);
+            const area = document.getElementById('main-game-area');
+            if (area) {
+                area.classList.remove('correct-flash', 'wrong-flash');
+                void area.offsetWidth;
+                area.classList.add('correct-flash');
+            }
+            const sc = document.getElementById('live-score');
+            if (sc) {
+                sc.classList.remove('score-bounce');
+                void sc.offsetWidth;
+                sc.classList.add('score-bounce');
+            }
+        }
+        function animateWrong() {
+            const area = document.getElementById('main-game-area');
+            if (area) {
+                area.classList.remove('correct-flash', 'wrong-flash');
+                void area.offsetWidth;
+                area.classList.add('wrong-flash');
+            }
+        }
+        function heartBreak() {
+            const c = document.getElementById('lives-container');
+            if (!c) return;
+            const spans = c.querySelectorAll('span');
+            const dead = spans[lives];
+            if (dead) {
+                dead.textContent = '💔';
+                dead.classList.remove('opacity-30', 'grayscale');
+                dead.classList.add('heart-broken');
+            }
+        }
+        function celebrateBig() {
+            celebrate(true);
+            const badge = document.getElementById('badge-card-' + currentLevel);
+            if (badge) {
+                badge.classList.remove('badge-bounce');
+                void badge.offsetWidth;
+                badge.classList.add('badge-bounce');
+            }
+        }
+
+        // --- CORE GAME LOGIC ---
+
+        function login() {
+            const sClass = document.getElementById('student-class').value.trim().toUpperCase();
+            const sNo = document.getElementById('student-no').value.trim();
+            const sName = document.getElementById('student-name').value.trim();
+
+            if (!sClass || !sNo || !sName) {
+                showToast("Please fill in all details to start.", "error");
+                return;
+            }
+
+            studentProfile = { class: sClass, no: sNo, name: sName };
+            document.getElementById('display-name').textContent = `Welcome, ${sName}`;
+            document.getElementById('display-class').textContent = sClass;
+            document.getElementById('display-no').textContent = sNo;
+
+            loadScores();
+            loadMistakes();
+
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('dashboard-screen').classList.remove('hidden');
+            
+            updatePassportUI();
+            showToast(`Welcome aboard, ${sName}!`, "success");
+        }
+
+        function logout() {
+            studentProfile = null;
+            document.getElementById('dashboard-screen').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('student-class').value = '';
+            document.getElementById('student-no').value = '';
+            document.getElementById('student-name').value = '';
+        }
+
+        function updatePassportUI() {
+            for (let i = 0; i <= 3; i++) {
+                const statusEl = document.getElementById(`badge-status-${i}`);
+                const iconEl = document.getElementById(`badge-icon-${i}`);
+                const cardEl = document.getElementById(`badge-card-${i}`);
+                
+                if (badgeRecords[`level${i}`]) {
+                    statusEl.textContent = "Completed ✅";
+                    statusEl.className = "text-sm font-semibold text-green-400";
+                    iconEl.textContent = "🏆";
+                    cardEl.classList.add('border-amber-500');
+                } else {
+                    statusEl.textContent = "Not Attempted";
+                    statusEl.className = "text-sm font-semibold text-slate-500";
+                    iconEl.textContent = "🔒";
+                    cardEl.classList.remove('border-amber-500');
+                }
+            }
+            updateScoreboardUI();
+        }
+
+        // --- SCORE BOARD LOGIC ---
+        function getScoreStorageKey() {
+            if (!studentProfile) return null;
+            return `hkdse_stat_score_${studentProfile.class}_${studentProfile.no}_${studentProfile.name}`;
+        }
+
+        function loadScores() {
+            const key = getScoreStorageKey();
+            scoreTotals = { level0: 0, level1: 0, level2: 0, level3: 0 };
+            if (!key) return;
+            try {
+                const raw = localStorage.getItem(key);
+                if (raw) {
+                    const saved = JSON.parse(raw);
+                    if (saved && typeof saved.level1 === 'number') {
+                        scoreTotals = saved;
+                        saveScores();
+                    }
+                }
+            } catch (e) { console.log('loadScores error', e); }
+        }
+
+        function saveScores() {
+            const key = getScoreStorageKey();
+            if (!key) return;
+            try {
+                localStorage.setItem(key, JSON.stringify(scoreTotals));
+            } catch (e) { console.log('saveScores error', e); }
+        }
+
+        // --- MISTAKE & REFLECTION LOG (sent to teacher on submit, analysed by the mistake-analyst agent) ---
+        function getMistakeStorageKey() {
+            if (!studentProfile) return null;
+            return `hkdse_stat_mistakes_${studentProfile.class}_${studentProfile.no}_${studentProfile.name}`;
+        }
+
+        function loadMistakes() {
+            const key = getMistakeStorageKey();
+            mistakeLog = [];
+            lastMistake = null;
+            if (!key) return;
+            try {
+                const raw = localStorage.getItem(key);
+                if (raw) {
+                    const saved = JSON.parse(raw);
+                    if (Array.isArray(saved)) mistakeLog = saved;
+                }
+            } catch (e) { console.log('loadMistakes error', e); }
+        }
+
+        function saveMistakes() {
+            const key = getMistakeStorageKey();
+            if (!key) return;
+            try {
+                localStorage.setItem(key, JSON.stringify(mistakeLog));
+            } catch (e) { console.log('saveMistakes error', e); }
+        }
+
+        function clearMistakes() {
+            mistakeLog = [];
+            lastMistake = null;
+            const key = getMistakeStorageKey();
+            if (key) {
+                try { localStorage.removeItem(key); } catch (e) { console.log('clearMistakes error', e); }
+            }
+        }
+
+        // Start a mistake record (called on every wrong answer BEFORE the reflection modal).
+        function logMistake(q, wrongOption) {
+            lastMistake = {
+                topic: 'Statistics',
+                level: currentLevel,
+                instruction: q.instruction || '',
+                law: q.firstStepLaw || '',
+                text: (q.src ? q.src + ' · ' : '') + (q.text || q.qHtml || (q.displayTex ? `\\text{Simplify } ${q.displayTex}` : '')),
+                wrongOption: wrongOption || '',
+                answerStr: q.answerStr || '',
+                studentLaw: null,
+                lawCorrect: null,
+                ts: new Date().toISOString()
+            };
+        }
+
+        // Push the current mistake (now with reflection attached) into the log.
+        function commitMistake() {
+            if (!lastMistake) return;
+            mistakeLog.push(lastMistake);
+            lastMistake = null;
+            saveMistakes();
+        }
+
+        function updateScoreboardUI() {
+            document.getElementById('score-0').textContent = scoreTotals.level0;
+            document.getElementById('score-1').textContent = scoreTotals.level1;
+            document.getElementById('score-2').textContent = scoreTotals.level2;
+            document.getElementById('score-3').textContent = scoreTotals.level3;
+            document.getElementById('total-marks').textContent = scoreTotals.level0 + scoreTotals.level1 + scoreTotals.level2 + scoreTotals.level3;
+        }
+
+        // Marks for the CURRENT attempt: full minus (hearts lost × per-heart)
+        function currentAttemptMarks() {
+            const cfg = MARKS[currentLevel];
+            if (!cfg) return 0;
+            const heartsLost = Math.max(0, LEVEL_LIVES[currentLevel] - lives);
+            return Math.max(0, cfg.full - heartsLost * cfg.perHeart);
+        }
+
+        function updateLiveScore() {
+            const el = document.getElementById('live-score');
+            if (el) el.textContent = currentAttemptMarks();
+        }
+
+        function resetBadges() {
+            if(confirm("Are you sure you want to reset your progress and marks?")) {
+                badgeRecords = { level0: false, level1: false, level2: false, level3: false };
+                levelStats = { level0: { correct: 0, total: 0 }, level1: { correct: 0, total: 0 }, level2: { correct: 0, total: 0 }, level3: { correct: 0, total: 0 } };
+                scoreTotals = { level0: 0, level1: 0, level2: 0, level3: 0 };
+                saveScores();
+                updatePassportUI();
+                showToast("Progress and marks reset.", "info");
+            }
+        }
+
+        function startGame(level) {
+            currentLevel = level;
+            document.getElementById('dashboard-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            
+            const levelColors = ['text-green-400', 'text-teal-400', 'text-amber-400', 'text-red-400'];
+            document.getElementById('level-indicator').className = `font-bold ${levelColors[level]}`;
+            document.getElementById('level-indicator').textContent = `Level ${level}`;
+
+            lives = LEVEL_LIVES[level];
+            currentQuestionIndex = 0;
+            currentQuestions = [];
+            currentSets = [];
+            currentSetIndex = 0;
+            activePart = null;
+            updateLiveScore();
+            
+            if (level === 3) {
+                // Level 3: LEVEL3_SETS multi-part question sets; each set shown as (a)(b)(c) blocks on one page
+                const directPool = DIRECT[3] || [];
+                const kD = Math.min(DIRECT_PER_GAME[3] || 0, directPool.length);
+                const pickedDirect = MathGen.shuffle(directPool).slice(0, kD);
+                const usedTexts = new Set();
+                const usedOpts = new Set();
+                const usedAns = new Set();
+                for (let i = 0; i < LEVEL3_SETS; i++) {
+                    let parts = null, tKey = null, oKey = null, aKey = null, tries = 0;
+                    do {
+                        if (i < kD) {
+                            parts = pickedDirect[i].map(p => Object.assign({}, p));
+                        } else {
+                            parts = MathGen.generateL3Set();
+                        }
+                        tKey = parts.map(p => p.qHtml).join('|');
+                        oKey = parts.map(p => [...p.options].sort().join('~')).join('|');
+                        aKey = parts.map(p => p.answerStr).join('|');
+                        tries++;
+                    } while ((usedTexts.has(tKey) || usedOpts.has(oKey) || usedAns.has(aKey)) && tries < 100);
+                    usedTexts.add(tKey);
+                    usedOpts.add(oKey);
+                    usedAns.add(aKey);
+                    parts.forEach((part, pi) => {
+                        part.setNo = i + 1;
+                        part.partIdx = pi;
+                        part.partLabel = ['(a)', '(b)', '(c)'][pi];
+                        part.paper = 'Paper 1';
+                        part.done = false;
+                        part.mode = 'fill';
+                    });
+                    currentSets.push(parts);
+                }
+                updateLivesUI();
+                renderSet();
+                return;
+            }
+            
+            // Levels 0, 1 & 2: NUM_QUESTIONS single questions (no duplicate questions, MC options or answers in a game)
+            const directPool = DIRECT[level] || [];
+            const kD = Math.min(DIRECT_PER_GAME[level] || 0, directPool.length);
+            const pickedDirect = MathGen.shuffle(directPool).slice(0, kD);
+            const genCount = NUM_QUESTIONS - kD;
+            const typeCount = { 0: 8, 1: 4, 2: 7 };
+            const usedTexts = new Set();
+            const usedOpts = new Set();
+            const usedAns = new Set();
+            for(let i=0; i<NUM_QUESTIONS; i++) {
+                let q = null, tKey = null, oKey = null, aKey = null, tries = 0;
+                do {
+                    if (i < genCount) {
+                        const ti = MathGen.rand(0, typeCount[level] - 1);
+                        q = (level === 0) ? MathGen.generateL0(ti) : ((level === 1) ? MathGen.generateL1(ti) : MathGen.generateL2(ti));
+                        aKey = (q.answerStr === 'yes' || q.answerStr === 'no') ? (q.qHtml || q.text) : q.answerStr;
+                    } else {
+                        q = Object.assign({}, pickedDirect[i - genCount]);
+                        aKey = q.src + '|' + q.answerStr;
+                    }
+                    tKey = q.qHtml || q.text;
+                    oKey = [...q.options].sort().join('~');
+                    tries++;
+                } while ((usedTexts.has(tKey) || usedOpts.has(oKey) || usedAns.has(aKey)) && tries < 300);
+                usedTexts.add(tKey);
+                usedOpts.add(oKey);
+                usedAns.add(aKey);
+                currentQuestions.push(q);
+            }
+            
+            updateLivesUI();
+            renderQuestion();
+        }
+
+        function updateLivesUI() {
+            const container = document.getElementById('lives-container');
+            container.innerHTML = '';
+            for (let i = 0; i < lives; i++) {
+                container.innerHTML += '<span class="heart-bounce">❤️</span>';
+            }
+            for (let i = lives; i < LEVEL_LIVES[currentLevel]; i++) {
+                container.innerHTML += '<span class="opacity-30 grayscale">❤️</span>';
+            }
+        }
+
+        function renderQuestion() {
+            document.getElementById('q-counter').textContent = `${currentQuestionIndex + 1}/${currentQuestions.length}`;
+            const q = currentQuestions[currentQuestionIndex];
+            
+            // Ensure single-question UI is visible and L3 area hidden
+            document.getElementById('l3-area').classList.add('hidden');
+            document.getElementById('question-display').classList.remove('hidden');
+            
+            const displayEl = document.getElementById('question-display');
+            displayEl.innerHTML = styleVars(q.qHtml || q.text || '');
+            
+            document.getElementById('question-instruction').textContent = q.instruction;
+            document.getElementById('paper-hint').textContent = 
+                (q.paper === 'Paper 1') ? 'DSE Paper 1 Style · Long Question' : 'DSE Paper 2 Style · MCQ';
+            document.getElementById('source-hint').textContent = q.src ? '📚 ' + q.src : '';
+            
+            const partLabelEl = document.getElementById('part-label');
+            partLabelEl.textContent = '';
+            partLabelEl.classList.add('hidden');
+            
+            // Teacher's format rule: Paper 2 → MC only, Paper 1 → fill-in only
+            currentQuestionMode = (q.paper === 'Paper 2') ? 'mc' : 'fill';
+
+            const mcArea = document.getElementById('mc-options');
+            const fillArea = document.getElementById('conventional-area');
+            const hint = document.getElementById('format-hint');
+
+            if (currentQuestionMode === 'mc') {
+                mcArea.classList.remove('hidden');
+                fillArea.classList.add('hidden');
+                hint.textContent = "Multiple Choice Mode";
+                
+                const btns = mcArea.querySelectorAll('button');
+                btns.forEach((btn, idx) => {
+                    btn.innerHTML = q.options[idx];
+                });
+            } else {
+                mcArea.classList.add('hidden');
+                fillArea.classList.remove('hidden');
+                hint.textContent = "Fill-in Mode";
+                
+                document.getElementById('conventional-input').value = '';
+                document.getElementById('math-preview').textContent = 'Empty';
+                
+                // Helper buttons for numeric answers
+                const helperBox = document.getElementById('helper-buttons');
+                helperBox.innerHTML = '';
+                ['/', '.', '-'].forEach(op => {
+                    helperBox.innerHTML += `<button onclick="insertAtCursor('${op}')" class="bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded text-white font-mono text-sm transition">${op}</button>`;
+                });
+            }
+
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        // --- Level 3: render the whole question set as (a)(b)(c) blocks on one page ---
+        function renderSet() {
+            const set = currentSets[currentSetIndex];
+            document.getElementById('q-counter').textContent = `Set ${currentSetIndex + 1}/${currentSets.length}`;
+            document.getElementById('question-instruction').textContent = "Solve the statistics problems — answer all parts:";
+            document.getElementById('paper-hint').textContent = 'DSE Paper 1 Style · Multi-part Question';
+            document.getElementById('source-hint').textContent = (set[0] && set[0].src) ? '📚 ' + set[0].src : '';
+            document.getElementById('format-hint').textContent = 'Fill-in Mode';
+            
+            const partLabelEl = document.getElementById('part-label');
+            partLabelEl.textContent = '';
+            partLabelEl.classList.add('hidden');
+            
+            // Hide single-question UI, show L3 area
+            document.getElementById('question-display').classList.add('hidden');
+            document.getElementById('mc-options').classList.add('hidden');
+            document.getElementById('conventional-area').classList.add('hidden');
+            const l3Area = document.getElementById('l3-area');
+            l3Area.classList.remove('hidden');
+            
+            const blocksEl = document.getElementById('l3-blocks');
+            blocksEl.innerHTML = '';
+            
+            set.forEach((part, pi) => {
+                const block = document.createElement('div');
+                block.id = `l3-block-${pi}`;
+                block.className = `bg-slate-800/60 border ${part.done ? 'border-green-500/70' : 'border-slate-700'} rounded-2xl p-4 transition-all duration-300`;
+                blocksEl.appendChild(block);
+                rebuildL3Block(pi);
+            });
+            
+            if (window.MathJax) MathJax.typesetPromise();
+        }
+
+        function insertL3Char(pi, ch) {
+            const f = document.getElementById(`l3-input-${pi}`);
+            const start = f.selectionStart ?? f.value.length;
+            const end = f.selectionEnd ?? f.value.length;
+            f.value = f.value.substring(0, start) + ch + f.value.substring(end, f.value.length);
+            const pos = start + ch.length;
+            f.setSelectionRange(pos, pos);
+            f.focus();
+            updateL3Preview(pi);
+        }
+
+        function updateL3Preview(pi) {
+            const input = document.getElementById(`l3-input-${pi}`).value;
+            const previewBox = document.getElementById(`l3-preview-${pi}`);
+            if (!previewBox) return;
+            previewBox.textContent = input.trim() ? input : 'Empty';
+        }
+
+        function submitSetPartMC(pi, btnIdx) {
+            const set = currentSets[currentSetIndex];
+            const part = set[pi];
+            if (part.done) return;
+            activePart = part;
+            const isCorrect = (part.options[btnIdx] === `$ ${part.mcAnswerStr} $`);
+            if (!isCorrect) logMistake(part, part.options[btnIdx]);
+            processSetAnswer(pi, isCorrect);
+        }
+
+        function submitSetPartFill(pi) {
+            const set = currentSets[currentSetIndex];
+            const part = set[pi];
+            if (part.done) return;
+            activePart = part;
+            
+            const rawInput = document.getElementById(`l3-input-${pi}`).value;
+            if (!rawInput.trim()) {
+                showToast("Please enter an answer.", "info");
+                return;
+            }
+            const cleanInput = rawInput.toLowerCase().replace(/\s+/g, '');
+            const isCorrect = checkFillAnswer(cleanInput, part);
+            if (!isCorrect) logMistake(part, cleanInput);
+            processSetAnswer(pi, isCorrect);
+        }
+
+        function rebuildL3Block(pi) {
+            const part = currentSets[currentSetIndex][pi];
+            const block = document.getElementById(`l3-block-${pi}`);
+            if (!block) return;
+            let inner = '';
+            inner += `<div class="flex justify-between items-center mb-2">
+                <span class="text-sm font-bold text-emerald-400">Part ${part.partLabel}</span>
+                <span id="l3-status-${pi}" class="${part.done ? 'text-green-400' : 'text-slate-400'} text-sm font-semibold">${part.done ? '✓ Correct' : ''}</span>
+            </div>`;
+            inner += `<div id="l3-q-${pi}" class="text-lg sm:text-xl text-white mb-3 text-left overflow-x-auto px-4 min-h-[40px] leading-relaxed qtext">${styleVars(part.qHtml || part.text || '')}</div>`;
+            if (part.done) {
+                inner += `<div class="text-center text-green-400 text-sm py-2 font-semibold">Answer: $ ${part.mcAnswerStr} $</div>`;
+            } else if (part.mode === 'mc') {
+                inner += `<div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="l3-mc-${pi}">`;
+                part.options.forEach((o, bi) => {
+                    inner += `<button onclick="submitSetPartMC(${pi}, ${bi})" class="option-btn bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl p-3 text-lg transition-all shadow-md active:scale-95 min-h-[56px] flex items-center justify-center">${o}</button>`;
+                });
+                inner += `</div>`;
+            } else {
+                inner += `
+                <div class="flex gap-2 w-full">
+                    <input type="text" id="l3-input-${pi}" placeholder="e.g. 5.4 or 2/5" oninput="updateL3Preview(${pi})" onkeypress="if(event.key==='Enter')submitSetPartFill(${pi})" class="flex-1 bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 text-lg font-mono text-white outline-none focus:border-amber-500 transition shadow-inner">
+                    <button onclick="submitSetPartFill(${pi})" class="bg-amber-600 hover:bg-amber-500 text-white font-bold px-4 rounded-lg text-base transition shadow-md active:scale-95">Submit</button>
+                </div>
+                <div id="l3-helpers-${pi}" class="flex flex-wrap gap-2 justify-center w-full mt-2">`;
+                ['/', '.', '-'].forEach(op => {
+                    inner += `<button onclick="insertL3Char(${pi},'${op}')" class="bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded text-white font-mono text-sm transition">${op}</button>`;
+                });
+                inner += `</div>
+                <div class="w-full p-3 bg-slate-900/60 border border-slate-700 rounded-lg text-center mt-2">
+                    <span class="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1 block">Your Answer</span>
+                    <div id="l3-preview-${pi}" class="text-lg text-slate-300 min-h-[28px] flex items-center justify-center">Empty</div>
+                </div>`;
+            }
+            block.innerHTML = inner;
+            block.classList.remove('border-slate-700');
+            block.classList.add(part.done ? 'border-green-500/70' : 'border-slate-700');
+            if (window.MathJax) MathJax.typesetPromise([block]);
+        }
+
+        function processSetAnswer(pi, isCorrect) {
+            levelStats[`level${currentLevel}`].total++;
+            
+            if (isCorrect) {
+                levelStats[`level${currentLevel}`].correct++;
+                showToast(`Part ${currentSets[currentSetIndex][pi].partLabel} correct! Awesome job.`, "success");
+                
+                const set = currentSets[currentSetIndex];
+                                animateCorrect();
+                                set[pi].done = true;
+                rebuildL3Block(pi);
+                
+                if (set.every(p => p.done)) {
+                    setTimeout(() => {
+                        currentSetIndex++;
+                        if (currentSetIndex >= currentSets.length) {
+                            winGame();
+                        } else {
+                            renderSet();
+                        }
+                    }, 700);
+                }
+            } else {
+                                animateWrong();
+                                showWrongReflectionModal();
+            }
+        }
+
+        function insertAtCursor(myValue) {
+            const myField = document.getElementById('conventional-input');
+            if (document.selection) {
+                myField.focus();
+                sel = document.selection.createRange();
+                sel.text = myValue;
+            } else if (myField.selectionStart || myField.selectionStart == '0') {
+                var startPos = myField.selectionStart;
+                var endPos = myField.selectionEnd;
+                myField.value = myField.value.substring(0, startPos) + myValue + myField.value.substring(endPos, myField.value.length);
+                myField.selectionStart = startPos + myValue.length;
+                myField.selectionEnd = startPos + myValue.length;
+            } else {
+                myField.value += myValue;
+            }
+            myField.focus();
+            updateLivePreview();
+        }
+
+        function handleEnter(e) {
+            if(e.key === 'Enter') submitFillAnswer();
+        }
+
+        function submitMCAnswer(btnIndex) {
+            const q = currentQuestions[currentQuestionIndex];
+            const selectedText = q.options[btnIndex];
+            const isCorrect = (selectedText === `$ ${q.mcAnswerStr} $`);
+            if (!isCorrect) logMistake(q, selectedText);
+            processAnswer(isCorrect);
+        }
+
+        // Statistics answer checking lives in checkFillAnswer (see above).
+
+        function submitFillAnswer() {
+            const q = currentQuestions[currentQuestionIndex];
+            const rawInput = document.getElementById('conventional-input').value;
+            
+            if(!rawInput.trim()) {
+                showToast("Please enter an answer.", "info");
+                return;
+            }
+
+            const cleanInput = rawInput.toLowerCase().replace(/\s+/g, '');
+            const isCorrect = checkFillAnswer(cleanInput, q);
+            if (!isCorrect) logMistake(q, cleanInput);
+            processAnswer(isCorrect);
+        }
+
+        function processAnswer(isCorrect) {
+            // Track total attempts for the current level
+            levelStats[`level${currentLevel}`].total++;
+            
+            if (isCorrect) {
+                // Track correct attempts
+                levelStats[`level${currentLevel}`].correct++;
+                                animateCorrect();
+                                showToast("Correct! Awesome job.", "success");
+                currentQuestionIndex++;
+                
+                if (currentQuestionIndex >= currentQuestions.length) {
+                    winGame();
+                } else {
+                    renderQuestion();
+                }
+            } else {
+                // Instantly pop up the wrong reflection modal before deducting life
+                                animateWrong();
+                                showWrongReflectionModal();
+            }
+        }
+
+        function showWrongReflectionModal() {
+            const modal = document.getElementById('wrong-reflection-modal');
+            modal.classList.remove('hidden');
+            if(window.MathJax) MathJax.typesetPromise([modal]);
+        }
+
+        function submitWrongReflection(selectedLaw) {
+            const q = (currentLevel === 3) ? activePart : currentQuestions[currentQuestionIndex];
+            const actualLaw = q.firstStepLaw;
+
+            let isLawCorrect = (selectedLaw === actualLaw);
+            if (actualLaw === 'use_a' && selectedLaw !== '') isLawCorrect = true;
+
+            // Attach the reflection choice to the pending mistake record and save it.
+            if (lastMistake) {
+                lastMistake.studentLaw = selectedLaw;
+                lastMistake.lawCorrect = isLawCorrect;
+                commitMistake();
+            }
+
+            document.getElementById('wrong-reflection-modal').classList.add('hidden');
+
+            if (isLawCorrect) {
+                showToast("Good reflection! You identified the correct technique to start with.", "success");
+            } else {
+                showToast("Not quite! Remember to check the Formula sheet or ask AI Tutor.", "error");
+            }
+
+            // Deduct life and shake the game screen to indicate a mistake
+            lives--;
+            updateLivesUI();
+            heartBreak();
+            updateLiveScore();
+            showWrongFeedback();
+            
+            const gameArea = document.getElementById('main-game-area');
+            gameArea.classList.add('shake');
+            setTimeout(() => gameArea.classList.remove('shake'), 400);
+
+            if (lives <= 0) {
+                setTimeout(() => {
+                    showToast("Mission Failed. Out of lives!", "error");
+                    quitGame();
+                }, 500);
+            }
+        }
+
+        function winGame() {
+                        badgeRecords[`level${currentLevel}`] = true;
+            celebrateBig();
+            const earned = currentAttemptMarks();
+            scoreTotals[`level${currentLevel}`] += earned;
+            saveScores();
+            showToast(`Level ${currentLevel} Complete! +${earned} marks earned! 🏆`, "success");
+            quitGame();
+        }
+
+        function quitGame() {
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('dashboard-screen').classList.remove('hidden');
+            updatePassportUI();
+        }
+
+        // Live Answer Preview for Fill-in Mode (plain text — never MathJax)
+        function updateLivePreview() {
+            const input = document.getElementById('conventional-input').value;
+            const previewBox = document.getElementById('math-preview');
+            previewBox.textContent = input.trim() ? input : 'Empty';
+        }
+
+        // --- HELPER UI FUNCTIONS ---
+
+        function showToast(message, type) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('fade-out');
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+
+        function showWrongFeedback() {
+            const el = document.getElementById('feedback-toast');
+            el.classList.remove('hidden');
+            setTimeout(() => {
+                el.classList.add('hidden');
+            }, 3000);
+        }
+
+        function toggleCheatSheet() {
+            const modal = document.getElementById('cheat-modal');
+            modal.classList.toggle('hidden');
+        }
+
+        function closeAITutor() {
+            document.getElementById('ai-tutor-modal').classList.add('hidden');
+        }
+
+        function askAITutor() {
+            let q;
+            if (currentLevel === 3) {
+                q = activePart;
+                if (!q) {
+                    q = currentSets[currentSetIndex].find(p => !p.done) || currentSets[currentSetIndex][0];
+                }
+            } else {
+                q = currentQuestions[currentQuestionIndex];
+            }
+            let hint = "";
+            switch (q.firstStepLaw) {
+                case 'mean_median_mode':
+                    hint = "Mean = sum ÷ count. Median: order the data and take the middle value(s). Mode: the most frequent value. For a frequency table, expand each value first (a value with frequency f appears f times).";
+                    break;
+                case 'five_number_summary':
+                    hint = "A box-and-whisker diagram gives the minimum, lower quartile, median, upper quartile and maximum. Inter-quartile range = Q3 − Q1; range = maximum − minimum.";
+                    break;
+                case 'stem_leaf':
+                    hint = "In a stem-and-leaf diagram, the stem is the tens digit and each leaf is a units digit: stem 4 leaf 7 means 47. Write out the ordered list of values before finding the median or quartiles.";
+                    break;
+                case 'freq_table':
+                    hint = "Each frequency tells how many times a value occurs. Expand the table into a list (a value with frequency f appears f times) before finding the median or mode.";
+                    break;
+                case 'std_dev':
+                    hint = "Standard deviation = √(Σ(x − mean)² ÷ n). Find the mean first, then the squared deviations, then the mean of those squares.";
+                    break;
+                case 'data_change':
+                    hint = "If every number becomes kx + c: mean → k·mean + c, range & IQR → k×, standard deviation → k×, variance → k²×. Adding a constant shifts everything but never changes spread.";
+                    break;
+                case 'std_score':
+                    hint = "Standard score z = (x − μ) ÷ σ. Rearrange: x = μ + zσ. Given two students' marks and z-scores, solve for μ and σ first, then substitute.";
+                    break;
+                case 'use_a':
+                    hint = "This is a follow-up part — reuse the result you found in part (a) and substitute it into the new condition.";
+                    break;
+                default:
+                    hint = "List the data in order, find the mean, then apply the right formula (IQR, σ or z).";
+            }
+
+            document.getElementById('ai-content-area').innerHTML = `
+                <div class="bg-slate-800/80 p-5 rounded-lg border border-purple-500/30 mb-4 shadow-inner">
+                    <p class="text-purple-300 font-semibold mb-2 text-lg">🤖 AI Hint specifically for this question:</p>
+                    <p class="text-white text-base">${hint}</p>
+                </div>
+                <div class="bg-slate-800/80 p-5 rounded-lg border border-slate-600 shadow-inner">
+                    <p class="text-amber-400 font-semibold mb-2 text-lg">💡 General Checklist:</p>
+                    <ul class="list-disc list-inside space-y-2 text-slate-300">
+                        <li>Order the data before finding the median and quartiles.</li>
+                        <li>IQR = Q3 − Q1 — always subtract the quartiles, not the extremes.</li>
+                        <li>Standard deviation uses the deviations from the MEAN — square, average, then square-root.</li>
+                        <li>z = (x − μ) ÷ σ: a negative z means below the mean.</li>
+                        <li>Change of data: ×k affects spread, +c only shifts the location.</li>
+                    </ul>
+                </div>
+            `;
+            document.getElementById('ai-tutor-modal').classList.remove('hidden');
+            if(window.MathJax) MathJax.typesetPromise();
+        }
+
+        // --- REFLECTION & SUBMISSION LOGIC ---
+
+        function submitToTeacher() {
+            if (!studentProfile) return;
+            
+            const btn = document.getElementById('btn-submit-teacher');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'Sending... ⏳';
+            btn.disabled = true;
+
+            const getPercent = (lvl) => {
+                const s = levelStats[lvl];
+                return s.total > 0 ? Math.round((s.correct / s.total) * 100) + "%" : "N/A";
+            };
+
+            const payload = {
+                timestamp: new Date().toISOString(),
+                topic: 'Statistics',
+                class: studentProfile.class,
+                no: studentProfile.no,
+                name: studentProfile.name,
+                level0: badgeRecords.level0,
+                level0Percent: getPercent('level0'),
+                level0Marks: scoreTotals.level0,
+                level1: badgeRecords.level1,
+                level1Percent: getPercent('level1'),
+                level1Marks: scoreTotals.level1,
+                level2: badgeRecords.level2,
+                level2Percent: getPercent('level2'),
+                level2Marks: scoreTotals.level2,
+                level3: badgeRecords.level3,
+                level3Percent: getPercent('level3'),
+                level3Marks: scoreTotals.level3,
+                totalMarks: scoreTotals.level0 + scoreTotals.level1 + scoreTotals.level2 + scoreTotals.level3,
+                mistakes: mistakeLog.slice()
+            };
+
+            // Send as text/plain (simple request, no CORS preflight) so we can read the
+            // Apps Script JSON response and confirm the row was actually written.
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'cors',
+                headers: {
+                    'Content-Type': 'text/plain;charset=UTF-8',
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(resp => resp.json())
+            .then(data => {
+                if (data && data.status === 'success') {
+                    clearMistakes();
+                    showToast("Data submitted to teacher successfully!", "success");
+                } else {
+                    showToast("Server replied but data not saved: " + (data && data.message ? data.message : 'unknown error'), "error");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showToast("Submission failed. Check your internet / Apps Script deployment.", "error");
+            })
+            .finally(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
+        }
+    </script>
+</body>
+</html>
