@@ -546,7 +546,7 @@
         const GOOGLE_SCRIPT_URL =
             'https://script.google.com/macros/s/AKfycbyxEokVu35Wn_rel7Hh-qWFsY2Iq5pCSM6z4d7TrQP70b6sKopgk8fAwlPXSo9RQSED/exec';
 
-        const APP_VERSION = '8';
+        const APP_VERSION = '9';
         (function watchAppVersion() {
             // GitHub Pages serves this site as .../<repo>/ (index.html). Tolerate
             // every URL shape: no trailing slash, query strings, direct index.html link.
@@ -958,7 +958,7 @@
                     if (pick === 0) {
                         qHtml = `The variance of the six numbers ${a}<i>a</i>+3, ${a}<i>a</i>+5, ${a}<i>a</i>+9, ${a}<i>a</i>+11, ${a}<i>a</i>+15 and ${a}<i>a</i>+17 is`;
                         answerStr = '25'; mcTex = '25';
-                        opts = this.opts4('25', ['5', '10', `${a}<i>a</i>+25`]);
+                        opts = this.opts4('25', ['5', '10', `${a}a+25`]);
                     } else {
                         qHtml = `The variance of the four numbers ${a}b, ${a}b+2, ${a}b+4 and ${a}b+6 is`;
                         answerStr = '5'; mcTex = '5';
