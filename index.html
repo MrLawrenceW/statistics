@@ -103,10 +103,12 @@
            wins). Never set vertical-align: middle !important on mjx-container or its svg. */
         #question-display mjx-container,
         #l3-area mjx-container,
-        #l3-blocks mjx-container { margin: 0 0.25em !important; font-size: 1em !important; }
+        #l3-blocks mjx-container,
+        #mc-options mjx-container { margin: 0 0.25em !important; font-size: 1em !important; }
         #question-display mjx-container svg,
         #l3-area mjx-container svg,
-        #l3-blocks mjx-container svg { display: inline-block !important; }
+        #l3-blocks mjx-container svg,
+        #mc-options mjx-container svg { display: inline-block !important; }
         .glass-panel {
             background: rgba(30, 41, 59, 0.8);
             backdrop-filter: blur(12px);
@@ -407,7 +409,7 @@
             <div id="question-display" class="text-lg sm:text-xl text-white mb-6 overflow-x-auto py-6 px-4 text-left leading-relaxed min-h-[120px] max-w-2xl mx-auto">
                 <!-- MathJax renders here -->
             </div>
-            
+
             <div id="mc-options" class="grid grid-cols-1 sm:grid-cols-2 gap-4 hidden w-full mt-auto">
                 <button onclick="submitMCAnswer(0)" class="option-btn bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl p-4 text-xl transition-all shadow-md active:scale-95 min-h-[64px] flex items-center justify-center"></button>
                 <button onclick="submitMCAnswer(1)" class="option-btn bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl p-4 text-xl transition-all shadow-md active:scale-95 min-h-[64px] flex items-center justify-center"></button>
@@ -544,7 +546,7 @@
         const GOOGLE_SCRIPT_URL =
             'https://script.google.com/macros/s/AKfycbyxEokVu35Wn_rel7Hh-qWFsY2Iq5pCSM6z4d7TrQP70b6sKopgk8fAwlPXSo9RQSED/exec';
 
-        const APP_VERSION = '7';
+        const APP_VERSION = '8';
         (function watchAppVersion() {
             // GitHub Pages serves this site as .../<repo>/ (index.html). Tolerate
             // every URL shape: no trailing slash, query strings, direct index.html link.
@@ -2137,6 +2139,16 @@
             }
         }
 
+        // Choices are plain text (no math type): strip $…$ and common TeX wrappers
+        function plainOpt(o) {
+            return String(o)
+                .replace(/\$/g, '')
+                .replace(/\\text\{([^}]*)\}/g, '$1')
+                .replace(/\\dfrac\{([^}]*)\}\{([^}]*)\}/g, '$1/$2')
+                .replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, '$1/$2')
+                .replace(/\\ /g, ' ');
+        }
+
         function renderQuestion() {
             document.getElementById('q-counter').textContent = `${currentQuestionIndex + 1}/${currentQuestions.length}`;
             const q = currentQuestions[currentQuestionIndex];
@@ -2171,7 +2183,7 @@
                 
                 const btns = mcArea.querySelectorAll('button');
                 btns.forEach((btn, idx) => {
-                    btn.innerHTML = q.options[idx];
+                    btn.innerHTML = `<div class="w-full text-center">${q.options[idx]}</div>`;
                 });
             } else {
                 mcArea.classList.add('hidden');
@@ -2288,7 +2300,7 @@
             } else if (part.mode === 'mc') {
                 inner += `<div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="l3-mc-${pi}">`;
                 part.options.forEach((o, bi) => {
-                    inner += `<button onclick="submitSetPartMC(${pi}, ${bi})" class="option-btn bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl p-3 text-lg transition-all shadow-md active:scale-95 min-h-[56px] flex items-center justify-center">${o}</button>`;
+                    inner += `<button onclick="submitSetPartMC(${pi}, ${bi})" class="option-btn bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl p-3 text-lg transition-all shadow-md active:scale-95 min-h-[56px] flex items-center justify-center"><div class="w-full text-center">${o}</div></button>`;
                 });
                 inner += `</div>`;
             } else {
