@@ -57,7 +57,6 @@
             color: #ffffff;
         }
         #question-display .stemleaf td, #l3-blocks .stemleaf td, .qtext .stemleaf td {
-            font-size: 1em;
             line-height: 1.6;
             padding: 5px 0;
         }
@@ -65,7 +64,6 @@
             padding-bottom: 9px;
         }
         #question-display .stemleaf th, #l3-blocks .stemleaf th, .qtext .stemleaf th {
-            font-size: 1em;
             font-weight: normal;
             color: #ffffff;
             text-decoration: underline;
@@ -80,7 +78,7 @@
         #question-display .stemleaf td:last-child, #l3-blocks .stemleaf td:last-child, .qtext .stemleaf td:last-child {
             text-align: left;
             padding-left: 16px;
-            letter-spacing: 0.3em;
+            letter-spacing: 0.28em;
             white-space: nowrap;
             border-left: 1px solid rgba(203, 213, 225, 0.55);
         }
@@ -554,7 +552,7 @@
         const GOOGLE_SCRIPT_URL =
             'https://script.google.com/macros/s/AKfycbyxEokVu35Wn_rel7Hh-qWFsY2Iq5pCSM6z4d7TrQP70b6sKopgk8fAwlPXSo9RQSED/exec';
 
-        const APP_VERSION = '11';
+        const APP_VERSION = '12';
         (function watchAppVersion() {
             // GitHub Pages serves this site as .../<repo>/ (index.html). Tolerate
             // every URL shape: no trailing slash, query strings, direct index.html link.
@@ -1682,9 +1680,9 @@
                     '3', 'five_number_summary', ['2', '4', '5']),
                 d1('HKDSE Maths Practice Paper-P1-Q9(b)', `The following table shows the distribution of the numbers of online hours spent by a group of children on a certain day.<br><table class="stem-table"><tr><th>Number of online hours</th><th>2</th><th>3</th><th>4</th><th>5</th></tr><tr><td>Number of children</td><td><i>r</i></td><td>8</td><td>12</td><td><i>s</i></td></tr></table><br>If <i>r</i> = 9 and the median of the distribution is 3, how many possible values of <i>s</i> are there?`,
                     '4', 'freq_table', ['3', '5', '6']),
-                d1('HKDSE 13-P1-Q10(a)', `The ages of the members of Committee A are shown as follows:<br>17 &nbsp; 18 &nbsp; 21 &nbsp; 21 &nbsp; 22 &nbsp; 22 &nbsp; 23 &nbsp; 23 &nbsp; 23 &nbsp; 31 &nbsp; 31 &nbsp; 34 &nbsp; 35 &nbsp; 36 &nbsp; 47 &nbsp; 47 &nbsp; 58 &nbsp; 68 &nbsp; 69 &nbsp; 69<br>(a) Write down the median of the ages of the members of Committee A.`,
+                d1('HKDSE 13-P1-Q10(a)', `The ages of the members of Committee A are shown as follows:<br>17 &nbsp; 18 &nbsp; 21 &nbsp; 21 &nbsp; 22 &nbsp; 22 &nbsp; 23 &nbsp; 23 &nbsp; 23 &nbsp; 31 &nbsp; 31 &nbsp; 34 &nbsp; 35 &nbsp; 36 &nbsp; 47 &nbsp; 47 &nbsp; 58 &nbsp; 68 &nbsp; 69 &nbsp; 69<br>Write down the median of the ages of the members of Committee A.`,
                     '31', 'mean_median_mode', ['23', '34', '36']),
-                d1('HKDSE 13-P1-Q10(a)', `The ages of the members of Committee A are shown as follows:<br>17 &nbsp; 18 &nbsp; 21 &nbsp; 21 &nbsp; 22 &nbsp; 22 &nbsp; 23 &nbsp; 23 &nbsp; 23 &nbsp; 31 &nbsp; 31 &nbsp; 34 &nbsp; 35 &nbsp; 36 &nbsp; 47 &nbsp; 47 &nbsp; 58 &nbsp; 68 &nbsp; 69 &nbsp; 69<br>(a) Write down the mode of the ages of the members of Committee A.`,
+                d1('HKDSE 13-P1-Q10(a)', `The ages of the members of Committee A are shown as follows:<br>17 &nbsp; 18 &nbsp; 21 &nbsp; 21 &nbsp; 22 &nbsp; 22 &nbsp; 23 &nbsp; 23 &nbsp; 23 &nbsp; 31 &nbsp; 31 &nbsp; 34 &nbsp; 35 &nbsp; 36 &nbsp; 47 &nbsp; 47 &nbsp; 58 &nbsp; 68 &nbsp; 69 &nbsp; 69<br>Write down the mode of the ages of the members of Committee A.`,
                     '23', 'mean_median_mode', ['31', '22', '34']),
                 d1('HKDSE 14-P1-Q4', `The table below shows the distribution of the numbers of calculators owned by some students.<br><table class="stem-table"><tr><th>Number of calculators</th><th>0</th><th>1</th><th>2</th><th>3</th></tr><tr><td>Number of students</td><td>7</td><td>14</td><td>15</td><td>4</td></tr></table><br>Find the median of the above distribution.`,
                     '1', 'mean_median_mode', ['2', '3', '1.5']),
@@ -1692,29 +1690,29 @@
                     '2', 'mean_median_mode', ['1', '3', '0']),
                 d1('HKDSE 14-P1-Q4', `The table below shows the distribution of the numbers of calculators owned by some students.<br><table class="stem-table"><tr><th>Number of calculators</th><th>0</th><th>1</th><th>2</th><th>3</th></tr><tr><td>Number of students</td><td>7</td><td>14</td><td>15</td><td>4</td></tr></table><br>Find the standard deviation of the above distribution.`,
                     '0.889', 'std_dev', ['0.9', '1.2', '0.8']),
-                d1('HKDSE 15-P1-Q12(a)', `The stem-and-leaf diagram below shows the distribution of the weights (in kg) of the students in a football club.<br><table class="stem-table stemleaf"><tr><th>Stem (tens)</th><th>Leaf (units)</th></tr><tr><td>4</td><td>0 &nbsp; 2 &nbsp; 3 &nbsp; 3 &nbsp; 3 &nbsp; 3 &nbsp; 9</td></tr><tr><td>5</td><td>1 &nbsp; 1 &nbsp; 2 &nbsp; 2 &nbsp; 3 &nbsp; 7 &nbsp; 9</td></tr><tr><td>6</td><td>3 &nbsp; 5 &nbsp; 8 &nbsp; 9</td></tr><tr><td>7</td><td>8 &nbsp; 9</td></tr></table><br>(a) Find the mean of the above distribution.`,
+                d1('HKDSE 15-P1-Q12(a)', `The stem-and-leaf diagram below shows the distribution of the weights (in kg) of the students in a football club.<br><table class="stem-table stemleaf"><tr><th>Stem (tens)</th><th>Leaf (units)</th></tr><tr><td>4</td><td>0 &nbsp; 2 &nbsp; 3 &nbsp; 3 &nbsp; 3 &nbsp; 3 &nbsp; 9</td></tr><tr><td>5</td><td>1 &nbsp; 1 &nbsp; 2 &nbsp; 2 &nbsp; 3 &nbsp; 7 &nbsp; 9</td></tr><tr><td>6</td><td>3 &nbsp; 5 &nbsp; 8 &nbsp; 9</td></tr><tr><td>7</td><td>8 &nbsp; 9</td></tr></table><br>Find the mean of the above distribution.`,
                     '55', 'mean_median_mode', ['52', '56', '54']),
-                d1('HKDSE 15-P1-Q12(a)', `The stem-and-leaf diagram below shows the distribution of the weights (in kg) of the students in a football club.<br><table class="stem-table stemleaf"><tr><th>Stem (tens)</th><th>Leaf (units)</th></tr><tr><td>4</td><td>0 &nbsp; 2 &nbsp; 3 &nbsp; 3 &nbsp; 3 &nbsp; 3 &nbsp; 9</td></tr><tr><td>5</td><td>1 &nbsp; 1 &nbsp; 2 &nbsp; 2 &nbsp; 3 &nbsp; 7 &nbsp; 9</td></tr><tr><td>6</td><td>3 &nbsp; 5 &nbsp; 8 &nbsp; 9</td></tr><tr><td>7</td><td>8 &nbsp; 9</td></tr></table><br>(a) Find the median of the above distribution.`,
+                d1('HKDSE 15-P1-Q12(a)', `The stem-and-leaf diagram below shows the distribution of the weights (in kg) of the students in a football club.<br><table class="stem-table stemleaf"><tr><th>Stem (tens)</th><th>Leaf (units)</th></tr><tr><td>4</td><td>0 &nbsp; 2 &nbsp; 3 &nbsp; 3 &nbsp; 3 &nbsp; 3 &nbsp; 9</td></tr><tr><td>5</td><td>1 &nbsp; 1 &nbsp; 2 &nbsp; 2 &nbsp; 3 &nbsp; 7 &nbsp; 9</td></tr><tr><td>6</td><td>3 &nbsp; 5 &nbsp; 8 &nbsp; 9</td></tr><tr><td>7</td><td>8 &nbsp; 9</td></tr></table><br>Find the median of the above distribution.`,
                     '52', 'mean_median_mode', ['51', '53', '55']),
-                d1('HKDSE 15-P1-Q12(a)', `The stem-and-leaf diagram below shows the distribution of the weights (in kg) of the students in a football club.<br><table class="stem-table stemleaf"><tr><th>Stem (tens)</th><th>Leaf (units)</th></tr><tr><td>4</td><td>0 &nbsp; 2 &nbsp; 3 &nbsp; 3 &nbsp; 3 &nbsp; 3 &nbsp; 9</td></tr><tr><td>5</td><td>1 &nbsp; 1 &nbsp; 2 &nbsp; 2 &nbsp; 3 &nbsp; 7 &nbsp; 9</td></tr><tr><td>6</td><td>3 &nbsp; 5 &nbsp; 8 &nbsp; 9</td></tr><tr><td>7</td><td>8 &nbsp; 9</td></tr></table><br>(a) Find the range of the above distribution.`,
+                d1('HKDSE 15-P1-Q12(a)', `The stem-and-leaf diagram below shows the distribution of the weights (in kg) of the students in a football club.<br><table class="stem-table stemleaf"><tr><th>Stem (tens)</th><th>Leaf (units)</th></tr><tr><td>4</td><td>0 &nbsp; 2 &nbsp; 3 &nbsp; 3 &nbsp; 3 &nbsp; 3 &nbsp; 9</td></tr><tr><td>5</td><td>1 &nbsp; 1 &nbsp; 2 &nbsp; 2 &nbsp; 3 &nbsp; 7 &nbsp; 9</td></tr><tr><td>6</td><td>3 &nbsp; 5 &nbsp; 8 &nbsp; 9</td></tr><tr><td>7</td><td>8 &nbsp; 9</td></tr></table><br>Find the range of the above distribution.`,
                     '39', 'five_number_summary', ['40', '38', '37']),
-                d1('HKDSE 15-P1-Q12(b)', `The stem-and-leaf diagram below shows the distribution of the weights (in kg) of the students in a football club.<br><table class="stem-table stemleaf"><tr><th>Stem (tens)</th><th>Leaf (units)</th></tr><tr><td>4</td><td>0 &nbsp; 2 &nbsp; 3 &nbsp; 3 &nbsp; 3 &nbsp; 3 &nbsp; 9</td></tr><tr><td>5</td><td>1 &nbsp; 1 &nbsp; 2 &nbsp; 2 &nbsp; 3 &nbsp; 7 &nbsp; 9</td></tr><tr><td>6</td><td>3 &nbsp; 5 &nbsp; 8 &nbsp; 9</td></tr><tr><td>7</td><td>8 &nbsp; 9</td></tr></table><br>(b) Two more students now join the club. It is found that both the mean and the range of the distribution of the weights are increased by 1 kg. Find the weight of each of these two students.`,
+                d1('HKDSE 15-P1-Q12(b)', `The stem-and-leaf diagram below shows the distribution of the weights (in kg) of the students in a football club.<br><table class="stem-table stemleaf"><tr><th>Stem (tens)</th><th>Leaf (units)</th></tr><tr><td>4</td><td>0 &nbsp; 2 &nbsp; 3 &nbsp; 3 &nbsp; 3 &nbsp; 3 &nbsp; 9</td></tr><tr><td>5</td><td>1 &nbsp; 1 &nbsp; 2 &nbsp; 2 &nbsp; 3 &nbsp; 7 &nbsp; 9</td></tr><tr><td>6</td><td>3 &nbsp; 5 &nbsp; 8 &nbsp; 9</td></tr><tr><td>7</td><td>8 &nbsp; 9</td></tr></table><br>Two more students now join the club. It is found that both the mean and the range of the distribution of the weights are increased by 1 kg. Find the weight of each of these two students.`,
                     '52 and 80', 'data_change', ['52 and 79', '53 and 80', '52 and 81']),
                 d1('HKDSE 17-P1-Q11(a)', `The stem-and-leaf diagram below shows the distribution of the hourly wages (in dollars) of the workers in a group.<br><table class="stem-table stemleaf"><tr><th>Stem (tens)</th><th>Leaf (units)</th></tr><tr><td>6</td><td>1 &nbsp; 1 &nbsp; 1 &nbsp; 3 &nbsp; 4 &nbsp; 6 &nbsp; 8 &nbsp; 9 &nbsp; 9</td></tr><tr><td>7</td><td><i>a</i> &nbsp; 7 &nbsp; 7 &nbsp; 8</td></tr><tr><td>8</td><td>1 &nbsp; <i>b</i></td></tr></table><br>It is given that the mean and the range of the above distribution are \\$70 and \\$22 respectively.<br><br>Find the median of the above distribution.`,
                     '69', 'stem_leaf', ['70', '68', '71']),
                 d1('HKDSE 17-P1-Q11(a)', `The stem-and-leaf diagram below shows the distribution of the hourly wages (in dollars) of the workers in a group.<br><table class="stem-table stemleaf"><tr><th>Stem (tens)</th><th>Leaf (units)</th></tr><tr><td>6</td><td>1 &nbsp; 1 &nbsp; 1 &nbsp; 3 &nbsp; 4 &nbsp; 6 &nbsp; 8 &nbsp; 9 &nbsp; 9</td></tr><tr><td>7</td><td><i>a</i> &nbsp; 7 &nbsp; 7 &nbsp; 8</td></tr><tr><td>8</td><td>1 &nbsp; <i>b</i></td></tr></table><br>It is given that the mean and the range of the above distribution are \\$70 and \\$22 respectively.<br><br>Find the standard deviation of the above distribution.`,
                     '7.33', 'std_dev', ['7.4', '8', '6.9']),
-                d1('HKDSE 19-P1-Q12(a)', `The stem-and leaf diagram below shows the distribution of the results (in seconds) of some boys in a 400 m race.<br><table class="stem-table stemleaf"><tr><th>Stem (tens)</th><th>Leaf (units)</th></tr><tr><td>5</td><td><i>a</i></td></tr><tr><td>6</td><td>0 &nbsp; 0 &nbsp; 3 &nbsp; <i>c</i> &nbsp; <i>c</i> &nbsp; 8 &nbsp; 9 &nbsp; 9 &nbsp; 9</td></tr><tr><td>7</td><td>0 &nbsp; 1 &nbsp; 1 &nbsp; 1 &nbsp; 2 &nbsp; 2 &nbsp; 5 &nbsp; 6 &nbsp; 9</td></tr><tr><td>8</td><td><i>b</i></td></tr></table><br>It is given that the inter-quartile range of the distribution is 8 seconds.<br>(a) Find <i>c</i>.`,
+                d1('HKDSE 19-P1-Q12(a)', `The stem-and leaf diagram below shows the distribution of the results (in seconds) of some boys in a 400 m race.<br><table class="stem-table stemleaf"><tr><th>Stem (tens)</th><th>Leaf (units)</th></tr><tr><td>5</td><td><i>a</i></td></tr><tr><td>6</td><td>0 &nbsp; 0 &nbsp; 3 &nbsp; <i>c</i> &nbsp; <i>c</i> &nbsp; 8 &nbsp; 9 &nbsp; 9 &nbsp; 9</td></tr><tr><td>7</td><td>0 &nbsp; 1 &nbsp; 1 &nbsp; 1 &nbsp; 2 &nbsp; 2 &nbsp; 5 &nbsp; 6 &nbsp; 9</td></tr><tr><td>8</td><td><i>b</i></td></tr></table><br>It is given that the inter-quartile range of the distribution is 8 seconds.<br>Find <i>c</i>.`,
                     '4', 'stem_leaf', ['3', '5', '6']),
-                d1('HKDSE 20-P1-Q9(a)', `The table below shows the distribution of the numbers of subjects taken by a class of students.<br><table class="stem-table"><tr><th>Number of subjects taken</th><th>4</th><th>5</th><th>6</th><th>7</th></tr><tr><td>Number of students</td><td>8</td><td>12</td><td>16</td><td>4</td></tr></table><br>(a) Write down the mean of the above distribution.`,
+                d1('HKDSE 20-P1-Q9(a)', `The table below shows the distribution of the numbers of subjects taken by a class of students.<br><table class="stem-table"><tr><th>Number of subjects taken</th><th>4</th><th>5</th><th>6</th><th>7</th></tr><tr><td>Number of students</td><td>8</td><td>12</td><td>16</td><td>4</td></tr></table><br>Write down the mean of the above distribution.`,
                     '5.4', 'mean_median_mode', ['5.5', '5.6', '5']),
-                d1('HKDSE 20-P1-Q9(a)', `The table below shows the distribution of the numbers of subjects taken by a class of students.<br><table class="stem-table"><tr><th>Number of subjects taken</th><th>4</th><th>5</th><th>6</th><th>7</th></tr><tr><td>Number of students</td><td>8</td><td>12</td><td>16</td><td>4</td></tr></table><br>(a) Write down the median of the above distribution.`,
+                d1('HKDSE 20-P1-Q9(a)', `The table below shows the distribution of the numbers of subjects taken by a class of students.<br><table class="stem-table"><tr><th>Number of subjects taken</th><th>4</th><th>5</th><th>6</th><th>7</th></tr><tr><td>Number of students</td><td>8</td><td>12</td><td>16</td><td>4</td></tr></table><br>Write down the median of the above distribution.`,
                     '5.5', 'mean_median_mode', ['5.4', '6', '5']),
-                d1('HKDSE 20-P1-Q9(a)', `The table below shows the distribution of the numbers of subjects taken by a class of students.<br><table class="stem-table"><tr><th>Number of subjects taken</th><th>4</th><th>5</th><th>6</th><th>7</th></tr><tr><td>Number of students</td><td>8</td><td>12</td><td>16</td><td>4</td></tr></table><br>(a) Write down the standard deviation of the above distribution.`,
+                d1('HKDSE 20-P1-Q9(a)', `The table below shows the distribution of the numbers of subjects taken by a class of students.<br><table class="stem-table"><tr><th>Number of subjects taken</th><th>4</th><th>5</th><th>6</th><th>7</th></tr><tr><td>Number of students</td><td>8</td><td>12</td><td>16</td><td>4</td></tr></table><br>Write down the standard deviation of the above distribution.`,
                     '0.917', 'std_dev', ['0.9', '1', '0.8']),
                 d1('HKDSE 20-P1-Q9(b)', `The table below shows the distribution of the numbers of subjects taken by a class of students.<br><table class="stem-table"><tr><th>Number of subjects taken</th><th>4</th><th>5</th><th>6</th><th>7</th></tr><tr><td>Number of students</td><td>8</td><td>12</td><td>16</td><td>4</td></tr></table><br>A new student now joins the class. The number of subjects taken by the new student is 5. Find the change in the median of the distribution due to the joining of this student.`,
                     '0.5', 'mean_median_mode', ['1', '0', '0.6']),
-                d1('HKDSE 20-P1-Q11(a)', `The stem-and-leaf diagram below shows the distribution of the weights (in grams) of the letters in a bag.<br><table class="stem-table stemleaf"><tr><th>Stem (tens)</th><th>Leaf (units)</th></tr><tr><td>1</td><td>1 &nbsp; 2 &nbsp; 2 &nbsp; 3</td></tr><tr><td>2</td><td>3 &nbsp; 3 &nbsp; 4 &nbsp; 5 &nbsp; 6 &nbsp; 9 &nbsp; 9</td></tr><tr><td>3</td><td>1 &nbsp; 6 &nbsp; 7 &nbsp; 8 &nbsp; 8 &nbsp; 8</td></tr><tr><td>4</td><td>2</td></tr><tr><td>5</td><td>0 &nbsp; <i>w</i></td></tr></table><br>It is given that the range of the above distribution is the triple of its inter-quartile range.<br>(a) Find <i>w</i>.`,
+                d1('HKDSE 20-P1-Q11(a)', `The stem-and-leaf diagram below shows the distribution of the weights (in grams) of the letters in a bag.<br><table class="stem-table stemleaf"><tr><th>Stem (tens)</th><th>Leaf (units)</th></tr><tr><td>1</td><td>1 &nbsp; 2 &nbsp; 2 &nbsp; 3</td></tr><tr><td>2</td><td>3 &nbsp; 3 &nbsp; 4 &nbsp; 5 &nbsp; 6 &nbsp; 9 &nbsp; 9</td></tr><tr><td>3</td><td>1 &nbsp; 6 &nbsp; 7 &nbsp; 8 &nbsp; 8 &nbsp; 8</td></tr><tr><td>4</td><td>2</td></tr><tr><td>5</td><td>0 &nbsp; <i>w</i></td></tr></table><br>It is given that the range of the above distribution is the triple of its inter-quartile range.<br>Find <i>w</i>.`,
                     '6', 'stem_leaf', ['5', '7', '8']),
                 d1('HKDSE 20-P1-Q11(b)', `The stem-and-leaf diagram below shows the distribution of the weights (in grams) of the letters in a bag.<br><table class="stem-table stemleaf"><tr><th>Stem (tens)</th><th>Leaf (units)</th></tr><tr><td>1</td><td>1 &nbsp; 2 &nbsp; 2 &nbsp; 3</td></tr><tr><td>2</td><td>3 &nbsp; 3 &nbsp; 4 &nbsp; 5 &nbsp; 6 &nbsp; 9 &nbsp; 9</td></tr><tr><td>3</td><td>1 &nbsp; 6 &nbsp; 7 &nbsp; 8 &nbsp; 8 &nbsp; 8</td></tr><tr><td>4</td><td>2</td></tr><tr><td>5</td><td>0 &nbsp; <i>w</i></td></tr></table><br>If a letter is randomly chosen from the bag, find the probability that the weight of the chosen letter is not less than the mode of the distribution.`,
                     '3/10', 'stem_leaf', [`\\frac{1}{5}`, `\\frac{2}{5}`, `\\frac{3}{5}`], undefined, `\\frac{3}{10}`),
@@ -2161,6 +2159,19 @@
                 .replace(/\\ /g, ' ');
         }
 
+        // Stem-and-leaf diagram: shrink font only when the diagram is oversized
+        // (a leaf row wider than the question panel). Base size matches the question text.
+        function fitStemLeaf() {
+            document.querySelectorAll('#question-display .stemleaf, #l3-blocks .stemleaf').forEach(tbl => {
+                const wrap = tbl.closest('#question-display, #l3-blocks');
+                const maxW = (wrap ? wrap.clientWidth : 480) - 24;
+                for (let f = 1; f >= 0.5; f -= 0.05) {
+                    tbl.style.fontSize = f + 'em';
+                    if (tbl.getBoundingClientRect().width <= maxW) break;
+                }
+            });
+        }
+
         function renderQuestion() {
             document.getElementById('q-counter').textContent = `${currentQuestionIndex + 1}/${currentQuestions.length}`;
             const q = currentQuestions[currentQuestionIndex];
@@ -2171,6 +2182,7 @@
             
             const displayEl = document.getElementById('question-display');
             displayEl.innerHTML = styleVars(q.qHtml || q.text || '');
+            fitStemLeaf();
             
             document.getElementById('question-instruction').textContent = q.instruction;
             document.getElementById('paper-hint').textContent = 
@@ -2249,6 +2261,7 @@
                 rebuildL3Block(pi);
             });
             
+            fitStemLeaf();
             if (window.MathJax) MathJax.typesetPromise();
         }
 
