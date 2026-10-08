@@ -554,7 +554,7 @@
         const GOOGLE_SCRIPT_URL =
             'https://script.google.com/macros/s/AKfycbyxEokVu35Wn_rel7Hh-qWFsY2Iq5pCSM6z4d7TrQP70b6sKopgk8fAwlPXSo9RQSED/exec';
 
-        const APP_VERSION = '10';
+        const APP_VERSION = '11';
         (function watchAppVersion() {
             // GitHub Pages serves this site as .../<repo>/ (index.html). Tolerate
             // every URL shape: no trailing slash, query strings, direct index.html link.
@@ -1054,7 +1054,8 @@
                     while (orig.length < 20) orig.push(this.rand(10, 39));
                     const med = this.medOfArr(orig);
                     const two1 = 19, two2 = 20;
-                    const sumXY = 18 * 4 - two1 - two2;
+                    const nm4 = this.rand(18, 22);
+                    const sumXY = nm4 * 4 - two1 - two2;
                     let maxMed = -1;
                     for (let x = 0; x <= sumXY; x++) {
                         const y = sumXY - x;
@@ -1066,7 +1067,7 @@
                     const stems = Object.keys(leavesMap).sort((a, b) => a - b);
                     const stemHtml = this.stemHtml(stems, stems.map(s => leavesMap[s].sort((a, b) => a - b).join(' ')));
                     const n0 = ['Tom', 'Ada', 'Peter'][this.rand(0, 2)];
-                    qHtml = `${n0} conducts a survey on the numbers of hours spent on doing homework in a week by secondary students. The stem-and-leaf diagram below shows the numbers of hours recorded in the twenty questionnaires:<br>${stemHtml}<br>${n0} receives four more questionnaires. He finds that the mean of the numbers of hours recorded in these four questionnaires is 18. It is found that the numbers of hours recorded in two of these four questionnaires are 19 and 20. Find the greatest possible median of the numbers of hours recorded in the twenty-four questionnaires.`;
+                    qHtml = `${n0} conducts a survey on the numbers of hours spent on doing homework in a week by secondary students. The stem-and-leaf diagram below shows the numbers of hours recorded in the twenty questionnaires:<br>${stemHtml}<br>${n0} receives four more questionnaires. He finds that the mean of the numbers of hours recorded in these four questionnaires is ${nm4}. It is found that the numbers of hours recorded in two of these four questionnaires are 19 and 20. Find the greatest possible median of the numbers of hours recorded in the twenty-four questionnaires.`;
                     answerStr = String(maxMed); mcTex = answerStr;
                     opts = this.numOpts(answerStr, [String(med), String(med + 1), String(Math.max(0, med - 1))]);
                     law = 'mean_median_mode';
