@@ -69,6 +69,7 @@
             font-weight: normal;
             color: #ffffff;
             text-decoration: underline;
+            white-space: nowrap;
             padding: 7px 0 6px;
         }
         #question-display .stemleaf td:first-child, #l3-blocks .stemleaf td:first-child, .qtext .stemleaf td:first-child,
@@ -80,7 +81,14 @@
             text-align: left;
             padding-left: 16px;
             letter-spacing: 0.3em;
+            white-space: nowrap;
             border-left: 1px solid rgba(203, 213, 225, 0.55);
+        }
+        #question-display .stem-key, #l3-blocks .stem-key, .qtext .stem-key {
+            text-align: center;
+            font-size: 0.85em;
+            color: #94a3b8;
+            margin-top: 6px;
         }
         #question-display .stemleaf th:last-child, #l3-blocks .stemleaf th:last-child, .qtext .stemleaf th:last-child {
             text-align: left;
@@ -546,7 +554,7 @@
         const GOOGLE_SCRIPT_URL =
             'https://script.google.com/macros/s/AKfycbyxEokVu35Wn_rel7Hh-qWFsY2Iq5pCSM6z4d7TrQP70b6sKopgk8fAwlPXSo9RQSED/exec';
 
-        const APP_VERSION = '9';
+        const APP_VERSION = '10';
         (function watchAppVersion() {
             // GitHub Pages serves this site as .../<repo>/ (index.html). Tolerate
             // every URL shape: no trailing slash, query strings, direct index.html link.
@@ -1041,26 +1049,26 @@
                     law = 'mean_median_mode';
                     src = 'S3 Statistics · HKDSE 12-P1-Q10(b)(i)';
                 } else if (t === 2) {
-                    // Q289(b)(ii) style — can the median stay the same after adding data?
+                    // Q289(b)(ii) style — greatest possible median after adding data
                     const orig = [];
                     while (orig.length < 20) orig.push(this.rand(10, 39));
                     const med = this.medOfArr(orig);
                     const two1 = 19, two2 = 20;
                     const sumXY = 18 * 4 - two1 - two2;
-                    let possible = false;
+                    let maxMed = -1;
                     for (let x = 0; x <= sumXY; x++) {
                         const y = sumXY - x;
-                        if (this.medOfArr([...orig, two1, two2, x, y]) === med) { possible = true; break; }
+                        const m = this.medOfArr([...orig, two1, two2, x, y]);
+                        if (m > maxMed) maxMed = m;
                     }
                     const leavesMap = {};
                     orig.forEach(v => { const s = Math.floor(v / 10); (leavesMap[s] = leavesMap[s] || []).push(v % 10); });
                     const stems = Object.keys(leavesMap).sort((a, b) => a - b);
                     const stemHtml = this.stemHtml(stems, stems.map(s => leavesMap[s].sort((a, b) => a - b).join(' ')));
                     const n0 = ['Tom', 'Ada', 'Peter'][this.rand(0, 2)];
-                    qHtml = `${n0} conducts a survey on the numbers of hours spent on doing homework in a week by secondary students. The stem-and-leaf diagram below shows the numbers of hours recorded in the twenty questionnaires:<br>${stemHtml}<br>It is given that the median of the numbers of hours recorded in the twenty questionnaires is ${med}. ${n0} receives four more questionnaires. He finds that the mean of the numbers of hours recorded in these four questionnaires is 18. It is found that the numbers of hours recorded in two of these four questionnaires are 19 and 20. Is it possible that the median of the numbers of hours recorded in the twenty-four questionnaires is the same as the median found above? Explain your answer.`;
-                    answerStr = possible ? 'yes' : 'no';
-                    mcTex = possible ? `\\text{Yes}` : `\\text{No}`;
-                    opts = this.yesNoOpts(answerStr);
+                    qHtml = `${n0} conducts a survey on the numbers of hours spent on doing homework in a week by secondary students. The stem-and-leaf diagram below shows the numbers of hours recorded in the twenty questionnaires:<br>${stemHtml}<br>${n0} receives four more questionnaires. He finds that the mean of the numbers of hours recorded in these four questionnaires is 18. It is found that the numbers of hours recorded in two of these four questionnaires are 19 and 20. Find the greatest possible median of the numbers of hours recorded in the twenty-four questionnaires.`;
+                    answerStr = String(maxMed); mcTex = answerStr;
+                    opts = this.numOpts(answerStr, [String(med), String(med + 1), String(Math.max(0, med - 1))]);
                     law = 'mean_median_mode';
                     src = 'S3 Statistics · HKDSE 12-P1-Q10(b)(ii)';
                 } else {
@@ -1645,14 +1653,14 @@
             // ══ Level 1 — S3 basics (J16 Statistics Q289/Q290; Sample-P1-Q14 excluded) ══
             const SL289 = `<table class="stem-table stemleaf"><tr><th>Stem (tens)</th><th>Leaf (units)</th></tr><tr><td>1</td><td>0 &nbsp; 0 &nbsp; 1 &nbsp; 1 &nbsp; 2 &nbsp; 3 &nbsp; 4 &nbsp; 5 &nbsp; 5 &nbsp; 6 &nbsp; 6 &nbsp; 7 &nbsp; 7</td></tr><tr><td>2</td><td>0 &nbsp; 0 &nbsp; 0 &nbsp; 5 &nbsp; 8</td></tr><tr><td>3</td><td>4 &nbsp; 6</td></tr></table>`;
             DIRECT[1] = [
-                d1('HKDSE 12-P1-Q10(a)', `Tom conducts a survey on the numbers of hours spent on doing homework in a week by secondary students. Questionnaires are sent out and twenty of them are returned. The stem-and-leaf diagram below shows the numbers of hours recorded in the twenty questionnaires:<br>${SL289}<br>(a) Find the median of the numbers of hours recorded in the twenty questionnaires.`,
+                d1('HKDSE 12-P1-Q10(a)', `Tom conducts a survey on the numbers of hours spent on doing homework in a week by secondary students. Questionnaires are sent out and twenty of them are returned. The stem-and-leaf diagram below shows the numbers of hours recorded in the twenty questionnaires:<br>${SL289}<br>Find the median of the numbers of hours recorded in the twenty questionnaires.`,
                     '16', 'mean_median_mode', ['18', '20', '14']),
-                d1('HKDSE 12-P1-Q10(a)', `Tom conducts a survey on the numbers of hours spent on doing homework in a week by secondary students. Questionnaires are sent out and twenty of them are returned. The stem-and-leaf diagram below shows the numbers of hours recorded in the twenty questionnaires:<br>${SL289}<br>(a) Find the mean of the numbers of hours recorded in the twenty questionnaires.`,
+                d1('HKDSE 12-P1-Q10(a)', `Tom conducts a survey on the numbers of hours spent on doing homework in a week by secondary students. Questionnaires are sent out and twenty of them are returned. The stem-and-leaf diagram below shows the numbers of hours recorded in the twenty questionnaires:<br>${SL289}<br>Find the mean of the numbers of hours recorded in the twenty questionnaires.`,
                     '18', 'mean_median_mode', ['16', '20', '17']),
-                d1('HKDSE 12-P1-Q10(b)(i)', `Tom conducts a survey on the numbers of hours spent on doing homework in a week by secondary students. Questionnaires are sent out and twenty of them are returned. The stem-and-leaf diagram below shows the numbers of hours recorded in the twenty questionnaires:<br>${SL289}<br>Tom receives four more questionnaires. He finds that the mean of the numbers of hours recorded in these four questionnaires is 18. It is found that the numbers of hours recorded in two of these four questionnaires are 19 and 20.<br>(i) Write down the mean of the numbers of hours recorded in the twenty-four questionnaires.`,
+                d1('HKDSE 12-P1-Q10(b)(i)', `Tom conducts a survey on the numbers of hours spent on doing homework in a week by secondary students. Questionnaires are sent out and twenty of them are returned. The stem-and-leaf diagram below shows the numbers of hours recorded in the twenty questionnaires:<br>${SL289}<br>Tom receives four more questionnaires. He finds that the mean of the numbers of hours recorded in these four questionnaires is 18. It is found that the numbers of hours recorded in two of these four questionnaires are 19 and 20.<br>Write down the mean of the numbers of hours recorded in the twenty-four questionnaires.`,
                     '18', 'mean_median_mode', ['17', '19', '20']),
-                d1('HKDSE 12-P1-Q10(b)(ii)', `Tom conducts a survey on the numbers of hours spent on doing homework in a week by secondary students. Questionnaires are sent out and twenty of them are returned. The stem-and-leaf diagram below shows the numbers of hours recorded in the twenty questionnaires:<br>${SL289}<br>Tom receives four more questionnaires. He finds that the mean of the numbers of hours recorded in these four questionnaires is 18. It is found that the numbers of hours recorded in two of these four questionnaires are 19 and 20.<br>(ii) Is it possible that the median of the numbers of hours recorded in the twenty-four questionnaires is the same as the median found in (a)? Explain your answer.`,
-                    'no', 'mean_median_mode', []),
+                d1('HKDSE 12-P1-Q10(b)(ii)', `Tom conducts a survey on the numbers of hours spent on doing homework in a week by secondary students. Questionnaires are sent out and twenty of them are returned. The stem-and-leaf diagram below shows the numbers of hours recorded in the twenty questionnaires:<br>${SL289}<br>Tom receives four more questionnaires. He finds that the mean of the numbers of hours recorded in these four questionnaires is 18. It is found that the numbers of hours recorded in two of these four questionnaires are 19 and 20.<br>Find the greatest possible median of the numbers of hours recorded in the twenty-four questionnaires.`,
+                    '16.5', 'mean_median_mode', ['16', '17', '18']),
                 d1('HKDSE 18-P1-Q11(a)(i)', `The following table shows the distribution of the numbers of children of some families:<br><table class="stem-table"><tr><th>Number of children</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th></tr><tr><td>Number of families</td><td><i>k</i></td><td>2</td><td>9</td><td>6</td><td>7</td></tr></table><br>It is given that <i>k</i> is a positive integer. If the mode of the distribution is 2, write down the least possible value of <i>k</i>.`,
                     '1', 'freq_table', ['2', '3', '8']),
                 d1('HKDSE 18-P1-Q11(a)(ii)', `The following table shows the distribution of the numbers of children of some families:<br><table class="stem-table"><tr><th>Number of children</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th></tr><tr><td>Number of families</td><td><i>k</i></td><td>2</td><td>9</td><td>6</td><td>7</td></tr></table><br>It is given that <i>k</i> is a positive integer. If the mode of the distribution is 2, write down the greatest possible value of <i>k</i>.`,
@@ -2089,6 +2097,8 @@
                     });
                     currentSets.push(parts);
                 }
+                currentSets = MathGen.shuffle(currentSets);
+                currentSets.forEach((parts, i) => parts.forEach(p => { p.setNo = i + 1; }));
                 updateLivesUI();
                 renderSet();
                 return;
@@ -2124,6 +2134,7 @@
                 currentQuestions.push(q);
             }
             
+            currentQuestions = MathGen.shuffle(currentQuestions);
             updateLivesUI();
             renderQuestion();
         }
