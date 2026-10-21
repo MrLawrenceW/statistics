@@ -556,7 +556,7 @@
         const GOOGLE_SCRIPT_URL =
             'https://script.google.com/macros/s/AKfycbyxEokVu35Wn_rel7Hh-qWFsY2Iq5pCSM6z4d7TrQP70b6sKopgk8fAwlPXSo9RQSED/exec';
 
-        const APP_VERSION = '13';
+        const APP_VERSION = '14';
         (function watchAppVersion() {
             // GitHub Pages serves this site as .../<repo>/ (index.html). Tolerate
             // every URL shape: no trailing slash, query strings, direct index.html link.
@@ -1535,7 +1535,7 @@
         // verbatim; diagram data restated as text. Answers verified against the
         // official marking scheme (P1) / recomputed (P2).
         const DIRECT = { 0: [], 1: [], 2: [], 3: [] };
-        const DIRECT_PER_GAME = { 0: 3, 1: 2, 2: 2, 3: 2 };
+        const DIRECT_PER_GAME = { 0: 3, 1: 3, 2: 2, 3: 2 };
 
         (function buildDirectPools() {
             // helper: Paper 2 MC entry
@@ -1556,6 +1556,23 @@
                 options: (ans === 'yes' || ans === 'no') ? MathGen.yesNoOpts(ans)
                     : (mc ? MathGen.shuffle([mc, ...dist].map(o => `$ ${o} $`))
                         : MathGen.numOpts(ans, dist))
+            });
+            // helper: TSA S3 fill entry (short question)
+            const t1 = (src, qHtml, ans, law, dist, accept) => ({
+                instruction: "Solve the statistics problem:",
+                paper: 'TSA', mode: 'fill', src: src, qHtml: qHtml, text: qHtml,
+                answerStr: ans, acceptList: accept || undefined,
+                mcAnswerStr: String(ans),
+                variables: [], firstStepLaw: law,
+                options: MathGen.numOpts(ans, dist)
+            });
+            // helper: TSA S3 MC entry
+            const t0 = (src, qHtml, mc, others, law) => ({
+                instruction: "Answer the statistics question:",
+                paper: 'TSA', mode: 'mc', src: src, qHtml: qHtml, text: qHtml,
+                answerStr: String(mc), mcAnswerStr: mc,
+                variables: [], firstStepLaw: law,
+                options: MathGen.shuffle([mc, ...others].map(o => `$ ${o} $`))
             });
             // helper: Paper 1 part (for L3 sets)
             const dp = (qHtml, ans, law, dist, accept) => ({
@@ -1661,8 +1678,11 @@
                     `-5\\text{ or }1`, [`-5\\text{ or }3`, `-3\\text{ or }1`, `-3\\text{ or }3`], 'std_score', '-5 or 1')
             ];
 
-            // ══ Level 1 — S3 basics (J16 Statistics Q289/Q290; Sample-P1-Q14 excluded) ══
+            // ══ Level 1 — S3 basics (J16 Statistics Q289/Q290; Sample-P1-Q14 excluded) + TSA 3B11 Q145–177 (2021–2025) ══
             const SL289 = `<table class="stem-table stemleaf"><tr><th>Stem (tens)</th><th>Leaf (units)</th></tr><tr><td>1</td><td>0 &nbsp; 0 &nbsp; 1 &nbsp; 1 &nbsp; 2 &nbsp; 3 &nbsp; 4 &nbsp; 5 &nbsp; 5 &nbsp; 6 &nbsp; 6 &nbsp; 7 &nbsp; 7</td></tr><tr><td>2</td><td>0 &nbsp; 0 &nbsp; 0 &nbsp; 5 &nbsp; 8</td></tr><tr><td>3</td><td>4 &nbsp; 6</td></tr></table>`;
+            const SL145 = `<table class="stem-table stemleaf"><tr><th>Stem (10 pages)</th><th>Leaf (1 page)</th></tr><tr><td>13</td><td>0 &nbsp; 5 &nbsp; 7</td></tr><tr><td>14</td><td>0 &nbsp; 0 &nbsp; 4 &nbsp; 8 &nbsp; 9</td></tr><tr><td>15</td><td>0 &nbsp; 3 &nbsp; 3 &nbsp; 6 &nbsp; 6 &nbsp; 8</td></tr><tr><td>16</td><td>1 &nbsp; 3 &nbsp; 7 &nbsp; 9</td></tr><tr><td>17</td><td>5 &nbsp; 8</td></tr></table>`;
+            const SL146 = `<table class="stem-table stemleaf"><tr><th>Stem (10)</th><th>Leaf (1)</th></tr><tr><td>4</td><td>0 &nbsp; 3</td></tr><tr><td>5</td><td>4 &nbsp; 7 &nbsp; 9 &nbsp; 9</td></tr><tr><td>6</td><td>1 &nbsp; 2 &nbsp; 4 &nbsp; 6 &nbsp; 8 &nbsp; 8 &nbsp; 8</td></tr><tr><td>7</td><td>1 &nbsp; 3 &nbsp; 3 &nbsp; 7 &nbsp; 9</td></tr><tr><td>8</td><td>0 &nbsp; 8</td></tr></table>`;
+            const SL147 = `<table class="stem-table stemleaf"><tr><th>Stem (10)</th><th>Leaf (1)</th></tr><tr><td>5</td><td>2 &nbsp; 3 &nbsp; 3</td></tr><tr><td>6</td><td>0 &nbsp; 0 &nbsp; 0 &nbsp; 1 &nbsp; 5 &nbsp; 7</td></tr><tr><td>7</td><td>0 &nbsp; 0 &nbsp; 2 &nbsp; 6</td></tr><tr><td>8</td><td>0 &nbsp; 8</td></tr><tr><td>9</td><td>1 &nbsp; 3 &nbsp; 5</td></tr></table>`;
             DIRECT[1] = [
                 d1('HKDSE 12-P1-Q10(a)', `Tom conducts a survey on the numbers of hours spent on doing homework in a week by secondary students. Questionnaires are sent out and twenty of them are returned. The stem-and-leaf diagram below shows the numbers of hours recorded in the twenty questionnaires:<br>${SL289}<br>Find the median of the numbers of hours recorded in the twenty questionnaires.`,
                     '16', 'mean_median_mode', ['18', '20', '14']),
@@ -1681,7 +1701,49 @@
                 d1('HKDSE 18-P1-Q11(b)(ii)', `The following table shows the distribution of the numbers of children of some families:<br><table class="stem-table"><tr><th>Number of children</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th></tr><tr><td>Number of families</td><td><i>k</i></td><td>2</td><td>9</td><td>6</td><td>7</td></tr></table><br>It is given that <i>k</i> is a positive integer. If the median of the distribution is 2, write down the greatest possible value of <i>k</i>.`,
                     '19', 'freq_table', ['18', '20', '25']),
                 d1('HKDSE 18-P1-Q11(c)', `The following table shows the distribution of the numbers of children of some families:<br><table class="stem-table"><tr><th>Number of children</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th></tr><tr><td>Number of families</td><td><i>k</i></td><td>2</td><td>9</td><td>6</td><td>7</td></tr></table><br>It is given that <i>k</i> is a positive integer. If the mean of the distribution is 2, find the value of <i>k</i>.`,
-                    '9', 'freq_table', ['8', '10', '11'])
+                    '9', 'freq_table', ['8', '10', '11']),
+                t1('TSA 22 Q145(a)', `The stem-and-leaf diagram below shows the number of pages of each book in Emily's home:<br>${SL145}<br>How many books are there in Emily's home?`, '20', 'stem_leaf', ['18', '21', '24']),
+                t1('TSA 22 Q145(b)', `The stem-and-leaf diagram below shows the number of pages of each book in Emily's home:<br>${SL145}<br>How many pages are there in the book with the most pages in Emily's home?`, '178', 'stem_leaf', ['175', '158', '180']),
+                t1('TSA 22 Q145(c)', `The stem-and-leaf diagram below shows the number of pages of each book in Emily's home:<br>${SL145}<br>Find the median of the number of pages of Emily's books at home.`, '153', 'stem_leaf', ['150', '156', '158']),
+                t1('TSA 24 Q146(a)', `The stem-and-leaf diagram below shows the scores a basketball team got in each match last year:<br>${SL146}<br>How many matches did the basketball team play last year?`, '20', 'stem_leaf', ['18', '21', '19']),
+                t1('TSA 24 Q146(b)', `The stem-and-leaf diagram below shows the scores a basketball team got in each match last year:<br>${SL146}<br>What was the lowest score the basketball team got in the matches last year?`, '40', 'stem_leaf', ['43', '38', '88']),
+                t1('TSA 24 Q146(c)', `The stem-and-leaf diagram below shows the scores a basketball team got in each match last year:<br>${SL146}<br>Find the median score the basketball team got in the matches last year.`, '67', 'stem_leaf', ['66', '68', '69']),
+                t1('TSA 25 Q147(a)', `The stem-and-leaf diagram below shows the sale of hamburgers at each branch of a fast-food chain yesterday:<br>${SL147}<br>How many branches does the fast-food chain have?`, '18', 'stem_leaf', ['17', '19', '20']),
+                t1('TSA 25 Q147(b)', `The stem-and-leaf diagram below shows the sale of hamburgers at each branch of a fast-food chain yesterday:<br>${SL147}<br>How many hamburgers did the highest-selling branch of the fast-food chain sell?`, '95', 'stem_leaf', ['93', '91', '98']),
+                t1('TSA 25 Q147(c)', `The stem-and-leaf diagram below shows the sale of hamburgers at each branch of a fast-food chain yesterday:<br>${SL147}<br>Find the mode of the sale of hamburgers at each branch of the fast-food chain yesterday.`, '60', 'stem_leaf', ['61', '70', '65']),
+                t1('TSA 21 Q150', `The following data show the number of sit-ups done by 5 students in one minute.<br>21, 28, 30, 24, 27<br>Find the mean of the above data.`, '26', 'mean_median_mode', ['25', '27', '24']),
+                t1('TSA 21 Q150', `The following data show the number of sit-ups done by 5 students in one minute.<br>21, 28, 30, 24, 27<br>Find the median of the above data.`, '27', 'mean_median_mode', ['26', '28', '24']),
+                t1('TSA 22 Q151', `The following data show the score of 7 athletes in a gymnastics competition.<br>7.6, 6.8, 6.9, 7.5, 7.3, 7.3, 6.3<br>Find the mean of the above data.`, '7.1', 'mean_median_mode', ['7.2', '7.0', '6.9']),
+                t1('TSA 22 Q151', `The following data show the score of 7 athletes in a gymnastics competition.<br>7.6, 6.8, 6.9, 7.5, 7.3, 7.3, 6.3<br>Find the median of the above data.`, '7.3', 'mean_median_mode', ['7.5', '6.9', '7.4']),
+                t1('TSA 23 Q152', `The following data show the score of 8 athletes in a gymnastics competition.<br>13, 3, 5, 9, 12, 12, 13, 13<br>Find the mean of the above data.`, '10', 'mean_median_mode', ['11', '12', '9']),
+                t1('TSA 23 Q152', `The following data show the score of 8 athletes in a gymnastics competition.<br>13, 3, 5, 9, 12, 12, 13, 13<br>Find the median of the above data.`, '12', 'mean_median_mode', ['13', '10', '12.5']),
+                t1('TSA 24 Q153', `The following data show the results (m) of 8 athletes in a long jump competition.<br>3.5, 3.6, 4.2, 4.4, 4.8, 5.3, 3.5, 3.5<br>Find the mean of the above data.`, '4.1', 'mean_median_mode', ['4.2', '3.9', '4.0']),
+                t1('TSA 24 Q153', `The following data show the results (m) of 8 athletes in a long jump competition.<br>3.5, 3.6, 4.2, 4.4, 4.8, 5.3, 3.5, 3.5<br>Find the median of the above data.`, '3.9', 'mean_median_mode', ['4.1', '4.0', '3.8']),
+                t1('TSA 25 Q154', `The following data show the scores of 10 basketball players in a competition.<br>9, 26, 14, 14, 27, 16, 22, 12, 26, 14<br>Find the mean of the above data.`, '18', 'mean_median_mode', ['17', '19', '16']),
+                t1('TSA 25 Q154', `The following data show the scores of 10 basketball players in a competition.<br>9, 26, 14, 14, 27, 16, 22, 12, 26, 14<br>Find the median of the above data.`, '15', 'mean_median_mode', ['14', '16', '18']),
+                t1('TSA 21 Q155', `The table below shows the number of stamps obtained in a 'Food Treasure Scheme' by 50 students.<br><table class="stem-table"><tr><th>Number of stamps</th><th>0 – 9</th><th>10 – 19</th><th>20 – 29</th><th>30 – 39</th></tr><tr><td>Number of students</td><td>29</td><td>11</td><td>7</td><td>3</td></tr></table><br>Find the modal class of the number of stamps obtained by the 50 students.`, '0-9', 'freq_table', ['10-19', '20-29', '30-39'], ['0-9', '0–9']),
+                t1('TSA 22 Q156', `The table below shows the distribution of the age of 150 members of a community centre.<br><table class="stem-table"><tr><th>Age (years old)</th><th>40 – 49</th><th>50 – 59</th><th>60 – 69</th><th>70 – 79</th><th>80 – 89</th></tr><tr><td>Number of members</td><td>2</td><td>13</td><td>59</td><td>61</td><td>15</td></tr></table><br>Find the modal class of the age of the 150 members.`, '70-79', 'freq_table', ['60-69', '80-89', '50-59'], ['70-79', '70–79']),
+                t1('TSA 23 Q157', `The table below shows the amount of 'Consumption Voucher' spent by 36 people within the first week.<br><table class="stem-table"><tr><th>Amount spent ($)</th><th>1 – 1000</th><th>1001 – 2000</th><th>2001 – 3000</th><th>3001 – 4000</th><th>4001 – 5000</th></tr><tr><td>Number of people</td><td>2</td><td>6</td><td>11</td><td>2</td><td>15</td></tr></table><br>Find the modal class of the amount of 'Consumption Voucher' spent by the 36 people.`, '4001-5000', 'freq_table', ['2001-3000', '3001-4000', '1-1000'], ['4001-5000', '4001–5000']),
+                t1('TSA 24 Q158', `The table below shows the distribution of the prices of 30 tablet computers.<br><table class="stem-table"><tr><th>Price ($)</th><th>2000 – 3999</th><th>4000 – 5999</th><th>6000 – 7999</th><th>8000 – 9999</th><th>10000 – 11999</th></tr><tr><td>Frequency</td><td>11</td><td>8</td><td>5</td><td>4</td><td>2</td></tr></table><br>Find the modal class of the prices of these 30 tablet computers.`, '2000-3999', 'freq_table', ['4000-5999', '6000-7999', '8000-9999'], ['2000-3999', '2000–3999']),
+                t1('TSA 25 Q159', `The table below shows the travelling time of Class 3A students from home to school.<br><table class="stem-table"><tr><th>Time (minutes)</th><th>10 – 19</th><th>20 – 29</th><th>30 – 39</th><th>40 – 49</th><th>50 – 59</th></tr><tr><td>Frequency</td><td>6</td><td>11</td><td>2</td><td>5</td><td>4</td></tr></table><br>Find the modal class of the travelling time of Class 3A students from home to school.`, '20-29', 'freq_table', ['10-19', '30-39', '40-49'], ['20-29', '20–29']),
+                t1('TSA 21 Q160', `The table below shows the take-away waiting time (minute) of 40 customers in a restaurant.<br><table class="stem-table"><tr><th>Time (minute)</th><th>0 – 4</th><th>5 – 9</th><th>10 – 14</th><th>15 – 19</th></tr><tr><td>Frequency</td><td>5</td><td>16</td><td>13</td><td>6</td></tr></table><br>Find the mean take-away waiting time of the 40 customers.`, '9.5', 'mean_median_mode', ['9', '10', '8.5']),
+                t1('TSA 22 Q161', `The table below shows the results of 30 students in a Mathematics test.<br><table class="stem-table"><tr><th>Result (mark)</th><th>1 – 25</th><th>26 – 50</th><th>51 – 75</th><th>76 – 100</th></tr><tr><td>Frequency</td><td>3</td><td>9</td><td>12</td><td>6</td></tr></table><br>Find the mean of the Mathematics test result of the 30 students.`, '55.5', 'mean_median_mode', ['55', '56', '54.5']),
+                t1('TSA 23 Q162', `The table below shows the results of 3A students in a Mathematics competition.<br><table class="stem-table"><tr><th>Result (mark)</th><th>1 – 20</th><th>21 – 40</th><th>41 – 60</th><th>61 – 80</th><th>81 – 100</th></tr><tr><td>Frequency</td><td>5</td><td>8</td><td>12</td><td>4</td><td>1</td></tr></table><br>Find the mean of the Mathematics competition results of 3A students.`, '42.5', 'mean_median_mode', ['42', '43', '41.5']),
+                t1('TSA 24 Q163', `The table below shows the distribution of weight (kg) of 40 watermelons.<br><table class="stem-table"><tr><th>Weight (kg)</th><th>3.0 – 3.9</th><th>4.0 – 4.9</th><th>5.0 – 5.9</th><th>6.0 – 6.9</th></tr><tr><td>Frequency</td><td>4</td><td>8</td><td>16</td><td>12</td></tr></table><br>Find the mean weight of these 40 watermelons.`, '5.35', 'mean_median_mode', ['5.4', '5.3', '5.25']),
+                t1('TSA 25 Q164', `The table below shows the number of voluntary services participated in by 40 volunteer team members in the last school year.<br><table class="stem-table"><tr><th>Number of voluntary services</th><th>1 – 2</th><th>3 – 4</th><th>5 – 6</th><th>7 – 8</th><th>9 – 10</th></tr><tr><td>Frequency</td><td>15</td><td>14</td><td>3</td><td>6</td><td>2</td></tr></table><br>Find the mean of the number of voluntary services participated in by 40 volunteer team members in the last school year.`, '3.8', 'mean_median_mode', ['3.7', '3.9', '4.0']),
+                t1('TSA 21 Q165', `Class 3A participated in an interclass English Speech Competition. The following table shows the weight of each marked item and its marks in these items.<br><table class="stem-table"><tr><th>Assessment item</th><th>Presentation Skills</th><th>Creativity</th><th>Collaboration Skills</th></tr><tr><td>Mark</td><td>72</td><td>96</td><td>84</td></tr><tr><td>Weight</td><td>60%</td><td>10%</td><td>30%</td></tr></table><br>Find the weighted mean mark of Class 3A.`, '78', 'mean_median_mode', ['77', '79', '84']),
+                t1('TSA 22 Q166', `Wincy joined a singing contest. The following table shows the weight of each marking item and her marks in these items.<br><table class="stem-table"><tr><th>Marking item</th><th>Rhythm</th><th>Pitch Accuracy</th><th>Performance</th></tr><tr><td>Mark</td><td>70</td><td>85</td><td>60</td></tr><tr><td>Weight</td><td>30%</td><td>50%</td><td>20%</td></tr></table><br>Find the weighted mean mark of Wincy.`, '75.5', 'mean_median_mode', ['75', '76', '74.5']),
+                t1('TSA 23 Q167', `Simon joined an admission examination for a university this year. The following table shows the weight in each subject of the admission scoring scheme and his scores in these subjects.<br><table class="stem-table"><tr><th>Subject</th><th>English Language</th><th>Mathematics</th><th>Chemistry</th><th>Physics</th></tr><tr><td>Score</td><td>4</td><td>5</td><td>2</td><td>3</td></tr><tr><td>Weight</td><td>40%</td><td>30%</td><td>10%</td><td>20%</td></tr></table><br>Find the weighted mean score of Simon.`, '3.9', 'mean_median_mode', ['4', '3.8', '3.5']),
+                t1('TSA 24 Q169', `The following table shows the price indices and their corresponding weight of the four types of household expenditure (clothing, food, housing and transport) of a city in the previous year.<br><table class="stem-table"><tr><th>Household expenditure</th><th>Clothing</th><th>Food</th><th>Housing</th><th>Transport</th></tr><tr><td>Price index</td><td>42</td><td>53</td><td>68</td><td>38</td></tr><tr><td>Weight</td><td>15%</td><td>30%</td><td>40%</td><td>15%</td></tr></table><br>Find the weighted mean price index of these four types of household expenditure of the city in the previous year.`, '55.1', 'mean_median_mode', ['55', '55.2', '54.9']),
+                t1('TSA 25 Q171', `The following table shows the score and the corresponding weight of each subject in Johnson's school report.<br><table class="stem-table"><tr><th>Subject</th><th>Chinese Language</th><th>English Language</th><th>Mathematics</th><th>Elective 1</th><th>Elective 2</th></tr><tr><td>Score</td><td>50</td><td>60</td><td>80</td><td>70</td><td>70</td></tr><tr><td>Weight</td><td>4</td><td>4</td><td>3</td><td>2</td><td>2</td></tr></table><br>Find the weighted mean score of Johnson.`, '64', 'mean_median_mode', ['63', '65', '66']),
+                t0('TSA 23 Q168', `Carmen applied for admission to a secondary school. The table below shows the weights of the admission criterion and her marks in these areas.<br><table class="stem-table"><tr><th>Admission criterion</th><th>Interview</th><th>Learning Portfolio</th><th>Extra-Curricular Activity</th></tr><tr><td>Mark</td><td>70</td><td>80</td><td>90</td></tr><tr><td>Weight</td><td>5</td><td>3</td><td>2</td></tr></table><br>Find the weighted mean mark of Carmen.`, '77', ['24', '80', '240'], 'mean_median_mode'),
+                t0('TSA 24 Q170', `A university conducted a test for dehumidifiers. The table below shows the score and the weight of each testing criterion for a model of dehumidifier.<br><table class="stem-table"><tr><th>Testing criterion</th><th>Daily dehumidification capacity</th><th>Energy efficiency</th><th>Sound level</th><th>Air purification performance</th></tr><tr><td>Score</td><td>87</td><td>94</td><td>69</td><td>50</td></tr><tr><td>Weight</td><td>40</td><td>40</td><td>10</td><td>10</td></tr></table><br>Find the weighted mean score of the model of dehumidifier.`, '84.3', ['25', '28.1', '75'], 'mean_median_mode'),
+                t0('TSA 25 Q172', `David applied for a scholarship. The table below shows the weight and his score of each judging criterion. The full marks of all criteria are equal.<br><table class="stem-table"><tr><th>Judging criterion</th><th>Interview Performance</th><th>School Results</th><th>Extra-curricular Activities</th><th>Awards</th></tr><tr><td>Score</td><td>25</td><td>30</td><td>15</td><td>10</td></tr><tr><td>Weight</td><td>5</td><td>3</td><td>1</td><td>1</td></tr></table><br>Find the weighted mean score of David.`, '24', ['2.5', '20', '60'], 'mean_median_mode'),
+                t1('TSA 21 Q173', `The following shows the check-in duration (minute) of 10 passengers of an airline.<br>3, 5, 6, 7, 16, 16, 19, 24, 26, 28<br>It is given that the mean check-in duration of the 10 passengers is 15 minutes. How many of the 10 passengers can finish their check-in in 15 minutes or less?`, '4', 'mean_median_mode', ['5', '6', '15']),
+                t1('TSA 22 Q174', `The following shows the monthly stationery expenditure ($) of Happy Company last year.<br>410, 500, 550, 600, 630, 700, 710, 720, 890, 940, 1260, 1450<br>It is given that the mean monthly stationery expenditure was $780 last year. How many months had stationery expenditure over $780 last year?`, '4', 'mean_median_mode', ['6', '5', '8']),
+                t1('TSA 23 Q175', `The prices of drinks at a restaurant are shown as follows.<br><table class="stem-table"><tr><th>Drink</th><th>Green Tea</th><th>Red Tea</th><th>Lemon Water</th><th>Lemon Tea</th><th>Coffee</th><th>Milk Tea</th><th>Chocolate Milk</th><th>Fresh Milk</th></tr><tr><td>Price</td><td>$14</td><td>$14</td><td>$16</td><td>$16</td><td>$17</td><td>$17</td><td>$24</td><td>$26</td></tr></table><br>It is given that the mean price of all types of drinks is $18. How many types of drinks are priced $18 or more?`, '2', 'mean_median_mode', ['4', '6', '3']),
+                t1('TSA 24 Q176', `The following shows the monthly electricity consumption (kWh) of a company last year.<br>4300, 5300, 5800, 6300, 6600, 7200, 7300, 8100, 9100, 11600, 11700, 12700<br>It is given that the mean of the monthly electricity consumption of the company last year was 8000 kWh. How many of the monthly electricity consumptions were more than 8000 kWh?`, '5', 'mean_median_mode', ['6', '7', '8']),
+                t1('TSA 25 Q177', `The following shows the prices of the 8 gifts in a class lucky draw event.<br>$5, $9, $12, $20, $40, $100, $100, $100<br>It is given that the mode of the prices of the gifts is $100. How many gifts cost $100?`, '3', 'mean_median_mode', ['4', '5', '8'])
             ];
 
             // ══ Level 2 — measures of dispersion (P1 Ch 14.1-14.5) ══
@@ -2197,8 +2259,7 @@
             fitStemLeaf();
             
             document.getElementById('question-instruction').textContent = q.instruction;
-            document.getElementById('paper-hint').textContent = 
-                (q.paper === 'Paper 1') ? 'DSE Paper 1 Style · Long Question' : 'DSE Paper 2 Style · MCQ';
+            document.getElementById('paper-hint').textContent = (q.paper === 'TSA') ? (q.mode === 'mc' ? 'TSA S3 Style · MCQ' : 'TSA S3 Style · Short Question') : ((q.paper === 'Paper 1') ? 'DSE Paper 1 Style · Long Question' : 'DSE Paper 2 Style · MCQ');
             document.getElementById('source-hint').textContent = q.src ? '📚 ' + q.src : '';
             
             const partLabelEl = document.getElementById('part-label');
@@ -2206,7 +2267,7 @@
             partLabelEl.classList.add('hidden');
             
             // Teacher's format rule: Paper 2 → MC only, Paper 1 → fill-in only
-            currentQuestionMode = (q.paper === 'Paper 2') ? 'mc' : 'fill';
+            currentQuestionMode = (q.paper === 'Paper 2' || q.mode === 'mc') ? 'mc' : 'fill';
 
             const mcArea = document.getElementById('mc-options');
             const fillArea = document.getElementById('conventional-area');
